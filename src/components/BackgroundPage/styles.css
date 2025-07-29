@@ -1,0 +1,50 @@
+/* Header */
+.large-header {
+	position: fixed;
+    top: 0;
+    left: 0;
+	width: 100vw;
+	height: 100vh; /* Ensure it covers the entire viewport */
+	background: #333;
+	overflow-x: hidden;
+	background-size: cover;
+	background-position: center center;
+	z-index: -10; /* Positioned behind other elements */
+	transform: translateZ(0); /* Ensure proper layering */
+}
+
+/* Specific background image */
+#large-header {
+	background-color: black;
+}
+
+/* Title styling */
+.main-title {
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	color: #f9f1e9;
+	text-align: center;
+	top: 50%;
+	left: 50%;
+	-webkit-transform: translate3d(-50%,-50%,0);
+	transform: translate3d(-50%,-50%,0);
+	z-index: 1; /* Ensure the title is above the header */
+}
+
+/* Responsive title styling */
+.demo-1 .main-title {
+	text-transform: uppercase;
+	font-size: 4.2em;
+	letter-spacing: 0.1em;
+}
+
+.main-title .thin {
+	font-weight: 200;
+}
+
+@media only screen and (max-width: 768px) {
+	.demo-1 .main-title {
+		font-size: 3em;
+	}
+}

@@ -1,57 +1,48 @@
+// src/custom_hooks/useFollow.js
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { backendServer } from "../BackendServer";
+import { useAuthContext } from "../context/AuthContext";
 
 const useFollow = () => {
+	const { authToken } = useAuthContext();
 	const queryClient = useQueryClient();
 
-	const { mutate: followUnfollow, isPending } = useMutation({
-		mutationFn: async (userId, authUserId) => {
+	const { mutate: follow, isPending } = useMutation({
+		mutationFn: async (userUuid) => { // Now accepts the user's UUID
 			try {
-				const res = await fetch(
-					`${backendServer}/api/v1/users/follow/${userId}`,
-					{
-						method: "POST",
-						credentials: "include",
-					}
-				);
+				const res = await fetch(`${backendServer}/api/users/${userUuid}/follow`, { // Updated endpoint
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"Authorization": `Bearer ${authToken}`, // Add JWT
+					},
+				});
 
-				const jsonRes = await res.json();
-
+				const data = await res.json();
 				if (!res.ok) {
-					throw new Error(data.error || "Something went wrong!");
+					throw new Error(data.message || "Something went wrong!");
 				}
-
-				return { jsonRes, userId, authUserId };
+				return data;
 			} catch (error) {
-				throw error;
+				throw new Error(error.message);
 			}
 		},
-		onSuccess: async ({ jsonRes, userId, authUserId }) => {
-			await queryClient.invalidateQueries({ queryKey: ["suggestedUsers"] });
-			await queryClient.invalidateQueries({ queryKey: ["followers", userId] });
-			await queryClient.invalidateQueries({ queryKey: ["followings", userId] });
-			await queryClient.invalidateQueries({
-				queryKey: ["followers", authUserId],
-			});
-			await queryClient.invalidateQueries({
-				queryKey: ["followings", authUserId],
-			});
-			await queryClient.invalidateQueries({ queryKey: ["userAuth"] });
-			await queryClient.invalidateQueries({
-				queryKey: ["userProfile"],
-			});
-
-			toast.success(jsonRes.message, {
-				position:"top-center", // You can also use "top-right" or "top-left" as per your preference
-			});
+		onSuccess: (data) => {
+			toast.success(data.message);
+			// Invalidate queries to refetch profile and suggestion data
+			Promise.all([
+				queryClient.invalidateQueries({ queryKey: ["userProfile"] }),
+				queryClient.invalidateQueries({ queryKey: ["suggestedUsers"] }),
+			]);
 		},
 		onError: (error) => {
 			toast.error(error.message);
 		},
 	});
 
-	return { followUnfollow, isPending };
+	return { follow, isPending };
 };
 
 export default useFollow;

@@ -2,42 +2,39 @@ import { CiImageOn } from "react-icons/ci";
 import { BsEmojiSmileFill } from "react-icons/bs";
 import { useRef, useState } from "react";
 import { IoCloseSharp } from "react-icons/io5";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { backendServer } from "../../BackendServer";
+import { useAuthContext } from "../../context/AuthContext"; // Import context
 
 const CreatePost = () => {
 	const [text, setText] = useState("");
 	const [img, setImg] = useState(null);
-
 	const imgRef = useRef(null);
 
-	const { data: userAuth } = useQuery({ queryKey: ["userAuth"] });
+	const { authUser, authToken } = useAuthContext(); // Get user and token
 	const queryClient = useQueryClient();
 
 	const {
-		data: cratePostData,
 		mutate: createPost,
 		isError,
 		isPending,
 	} = useMutation({
-		mutationFn: async ({ text, img }) => {
+		mutationFn: async ({ content, imageUrls }) => {
 			try {
-				const res = await fetch(`${backendServer}/api/v1/posts/create`, {
+				const res = await fetch(`${backendServer}/api/posts`, {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
+						Authorization: `Bearer ${authToken}`,
 					},
-					credentials: "include",
-					body: JSON.stringify({ text, img }),
+					body: JSON.stringify({ content, imageUrls }),
 				});
 
 				const jsonRes = await res.json();
-
 				if (!res.ok) {
-					throw new Error("Error creating the post");
+					throw new Error(jsonRes.message || "Error creating the post");
 				}
-
 				return jsonRes;
 			} catch (error) {
 				throw error;
@@ -47,24 +44,32 @@ const CreatePost = () => {
 			setImg(null);
 			setText("");
 			toast.success("Post created successfully");
-			//invalidate the post query to refetch the post-data
 			queryClient.invalidateQueries({ queryKey: ["posts"] });
 		},
 		onError: (error) => {
+			toast.error(error.message);
 			console.error(error);
 		},
 	});
 
-
 	const handleSubmit = (e) => {
 		e.preventDefault();
-		createPost({ text, img });
+		if (isPending) return;
+		if (!text.trim() && !img) {
+			toast.error("Please enter some text or select an image");
+			return;
+		}
+		if (text.length > 320) {
+			toast.error("Post content exceeds 320 characters");
+			return;
+		}
+
+		const imageUrls = img ? [img] : [];
+		createPost({ content: text, imageUrls });
 	};
 
 	const handleImgChange = (e) => {
 		const file = e.target.files[0];
-		
-
 		if (file) {
 			const reader = new FileReader();
 			reader.onload = () => {
@@ -76,13 +81,16 @@ const CreatePost = () => {
 
 	return (
 		<div className="flex p-4 items-start gap-4 border-b border-gray-700">
-			
 			<div className="avatar">
 				<div className="w-8 rounded-full">
-					<img src={userAuth?.profileImg } />
+					<Link to={`/profile/${authUser?.username}`}>
+						{/* Use the user's profile picture or a placeholder */}
+						<img
+							src={authUser?.profilePictureUrl || "/avatar-placeholder.png"}
+						/>
+					</Link>
 				</div>
 			</div>
-
 			<form className="flex flex-col gap-2 w-full" onSubmit={handleSubmit}>
 				<textarea
 					className="textarea w-full p-0 text-lg resize-none border-none focus:outline-none  border-gray-800"
@@ -105,7 +113,6 @@ const CreatePost = () => {
 						/>
 					</div>
 				)}
-
 				<div className="flex justify-between border-t py-2 border-t-gray-700">
 					<div className="flex gap-1 items-center">
 						<CiImageOn
@@ -114,13 +121,10 @@ const CreatePost = () => {
 						/>
 						<BsEmojiSmileFill className="fill-primary w-5 h-5 cursor-pointer" />
 					</div>
-					
 					<input type="file" hidden ref={imgRef} onChange={handleImgChange} />
-					
 					<button className="btn btn-primary rounded-full btn-sm text-white px-4">
 						{isPending ? "Posting..." : "Post"}
 					</button>
-
 				</div>
 				{isError && <div className="text-red-500">Something went wrong</div>}
 			</form>

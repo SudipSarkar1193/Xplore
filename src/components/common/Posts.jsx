@@ -3,62 +3,60 @@ import PostSkeleton from "../skeletons/PostSkeleton.jsx";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { backendServer } from "../../BackendServer.js";
+import { useAuthContext } from "../../context/AuthContext.jsx"; // Import context
 
-const Posts = ({ feedType, userId, setLength }) => {
-	// const isLoading = false;
-	const endPoint = () => {
-		const r = `${backendServer}/api/v1/posts`;
+const Posts = ({ feedType, userId }) => {
+	const { authToken } = useAuthContext(); // Get token from context
 
+	const getPostEndpoint = () => {
 		switch (feedType) {
 			case "forYou":
-				return `${r}/all`;
-			case "following":
-				return `${r}/following`;
+			case "following": // Using the same endpoint for now
+				return `${backendServer}/api/posts/feed`;
+
+			// NOTE: The backend endpoints for bookmarks, user posts, and likes are not yet available.
+
 			case "bookmarks":
-				return `${r}/bookmarks`;
+				return `${backendServer}/api/v1/posts/bookmarks`;
 			case "posts":
-				return `${r}/posts/${userId}`;
+				return `${backendServer}/api/v1/posts/posts/${userId}`;
 			case "likes":
-				return `${r}/likes/${userId}`;
+				return `${backendServer}/api/v1/posts/likes/${userId}`;
 			default:
-				return `${r}/all`;
+				return `${backendServer}/api/posts/feed`;
 		}
 	};
+
+	const POST_ENDPOINT = getPostEndpoint();
+
 	const { data, isLoading, refetch, isRefetching } = useQuery({
-		queryKey: ["posts", feedType],
+		queryKey: ["posts", feedType, userId],
 		queryFn: async () => {
 			try {
-				const res = await fetch(endPoint(), {
+				const res = await fetch(POST_ENDPOINT, {
 					method: "GET",
 					headers: {
 						"Content-Type": "application/json",
+						Authorization: `Bearer ${authToken}`, // Add JWT
 					},
-					credentials: "include",
 				});
-
 				const jsonRes = await res.json();
-
 				if (!res.ok) {
-					return null;
+					throw new Error(jsonRes.message || "Failed to fetch posts");
 				}
-
-				return jsonRes.data.posts;
+				// The backend now returns a paginated response, so we get the 'content' array
+				return jsonRes.content;
 			} catch (error) {
 				throw new Error(error);
 			}
 		},
 	});
 
-	//Important !!!
-	//if feed type is changed , we'd want useQuery to refetch the data
-	
-	const posts = Array.isArray(data) ? data : [];
-
 	useEffect(() => {
 		refetch();
-
-		if (setLength) setLength(posts?.length);
 	}, [feedType, refetch, userId]);
+
+	const posts = Array.isArray(data) ? data : [];
 
 	return (
 		<div className="">
@@ -75,7 +73,7 @@ const Posts = ({ feedType, userId, setLength }) => {
 			{!isLoading && posts && (
 				<div>
 					{posts.map((post) => (
-						<Post key={post._id} post={post} feedType={feedType} />
+						<Post key={post.postUuid} post={post} feedType={feedType} />
 					))}
 				</div>
 			)}

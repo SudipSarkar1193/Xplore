@@ -16,7 +16,7 @@ export const SearchUser = ({ show = false, limit = 15 }) => {
 	const { data: users, isLoading } = useQuery({
 		queryKey: ["users"],
 		queryFn: async () => {
-			const res = await fetch(`${backendServer}/api/v1/users/getusers/users`, {
+			const res = await fetch(`${backendServer}/api/users/all`, {
 				method: "GET",
 				headers: {
 					"Content-Type": "application/json",

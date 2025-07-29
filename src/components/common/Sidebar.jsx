@@ -1,72 +1,27 @@
 import XSvg from "../svgs/X";
-
 import { MdHomeFilled } from "react-icons/md";
 import { IoNotifications } from "react-icons/io5";
-import { FaUser } from "react-icons/fa";
-import { FaSearch } from "react-icons/fa";
-import { Link, Navigate } from "react-router-dom";
+import { FaUser, FaSearch, FaRegBookmark } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import { BiLogOut } from "react-icons/bi";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
-import { FaUserPlus } from "react-icons/fa";
-import { FaRegBookmark } from "react-icons/fa6";
 import RightPanel from "./RightPanel";
-import { backendServer } from "../../BackendServer";
-import {
-	CircleMenu,
-	CircleMenuItem,
-	TooltipPlacement,
-} from "react-circular-menu";
+import { CircleMenu, CircleMenuItem } from "react-circular-menu";
 import { SearchUser } from "./SearchUser";
+import { useAuthContext } from "../../context/AuthContext"; // Import context hook
 
 const Sidebar = () => {
-	const queryClient = useQueryClient();
+	const { authUser, logout } = useAuthContext(); // Get authUser and logout from context
 
-	//Logout :
-
-	const {
-		mutate: logout,
-		isError,
-		isPending,
-		error,
-	} = useMutation({
-		mutationFn: async () => {
-			try {
-				const res = await fetch(`${backendServer}/api/v1/auth/logout`, {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					credentials: "include",
-				});
-
-				const jsonRes = await res.json();
-
-				if (!res.ok) throw new Error(jsonRes.message || "Failed to Log out");
-
-				return jsonRes;
-			} catch (error) {
-				throw error;
-			}
-		},
-		onSuccess: async () => {
-			await queryClient.invalidateQueries({ queryKey: ["userAuth"] });
-			<Navigate to="/login" />;
-		},
-		onError: (error) => {
-			console.error(error.message);
-			toast.error(error.message);
-		},
-	});
-
-	const { data: authUser } = useQuery({ queryKey: ["userAuth"] });
+	const handleLogout = (e) => {
+		e.preventDefault();
+		logout();
+	};
 
 	return (
 		<div>
 			<dialog id="my_modal_2" className="modal ">
 				<div className="modal-box absolute z-70 top-[20%]">
 					<form method="dialog">
-						{/* if there is a button in form, it will close the modal */}
 						<button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
 							✕
 						</button>
@@ -121,10 +76,7 @@ const Sidebar = () => {
 						<CircleMenuItem>
 							<BiLogOut
 								size={25}
-								onClick={(e) => {
-									e.preventDefault();
-									logout();
-								}}
+								onClick={handleLogout}
 							/>
 						</CircleMenuItem>
 					</CircleMenu>
@@ -132,7 +84,7 @@ const Sidebar = () => {
 			</div>
 
 			<div className=" md:flex md:flex-[2_2_0] md:w-18 md:max-w-52 h-full">
-				{/* destop layout */}
+				{/* desktop layout */}
 				<div className="sticky top-0 h-screen  lg:flex lg:items-center flex-col border-r border-gray-700  hidden md:flex  ">
 					<Link to="/" className="flex justify-center md:justify-start">
 						<XSvg className="px-2 w-12 h-12 rounded-full fill-white hover:bg-secondary" />
@@ -196,7 +148,7 @@ const Sidebar = () => {
 							<div className="avatar hidden md:inline-flex">
 								<div className="w-8 rounded-full">
 									<img
-										src={authUser?.profileImg}
+										src={authUser?.profilePictureUrl || "/avatar-placeholder.png"} // Match backend DTO
 										alt="Profile"
 									/>
 								</div>
@@ -204,7 +156,7 @@ const Sidebar = () => {
 							<div className="flex justify-between flex-1">
 								<div className="hidden md:block">
 									<p className="text-white font-bold text-sm w-20 truncate">
-										{authUser?.fullName}
+										{authUser?.username} {/* Match backend DTO */}
 									</p>
 									<p className="text-slate-500 text-sm">
 										@{authUser?.username}
@@ -212,10 +164,7 @@ const Sidebar = () => {
 								</div>
 								<BiLogOut
 									className="w-5 h-5 cursor-pointer"
-									onClick={(e) => {
-										e.preventDefault();
-										logout();
-									}}
+									onClick={handleLogout}
 								/>
 							</div>
 						</Link>

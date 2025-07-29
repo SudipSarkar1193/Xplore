@@ -1,5 +1,3 @@
-// src/context/AuthContext.jsx
-
 import { createContext, useContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { backendServer } from "../BackendServer";

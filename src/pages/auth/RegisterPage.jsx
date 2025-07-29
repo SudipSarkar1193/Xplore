@@ -1,7 +1,8 @@
+// src/pages/auth/RegisterPage.jsx
+
 import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { toast } from "react-hot-toast";
 import XSvg from "../../../src/components/svgs/X.jsx";
 import { backendServer } from "../../BackendServer.js";
@@ -14,13 +15,11 @@ import { FaUser } from "react-icons/fa";
 
 const RegisterPage = () => {
 	const [isRegistered, setIsRegistered] = useState(false);
-	const [showModal, setShowModal] = useState(false);
-
 	const [formData, setFormData] = useState({
 		email: "",
 		username: "",
-		fullName: "",
 		password: "",
+		fullName: "",
 	});
 
 	const {
@@ -28,15 +27,14 @@ const RegisterPage = () => {
 		isError,
 		isPending,
 	} = useMutation({
-		mutationFn: async ({ email, username, fullName, password }) => {
+		mutationFn: async ({ email, username, password, fullName }) => {
 			try {
-				const res = await fetch(`${backendServer}/api/v1/auth/signup`, {
+				const res = await fetch(`${backendServer}/api/auth/register`, {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
 					},
-					credentials: "include",
-					body: JSON.stringify({ fullName, username, email, password }),
+					body: JSON.stringify({ username, email, password, fullName }),
 				});
 
 				const resData = await res.json();
@@ -44,24 +42,14 @@ const RegisterPage = () => {
 				if (!res.ok)
 					throw new Error(resData.message || "Failed to create account");
 
-				return { resData, username };
+				return resData;
 			} catch (error) {
 				throw error;
 			}
 		},
-		onSuccess: ({ resData, username }) => {
-			toast.success(resData.message);
-			if (resData.data.user.username !== username) {
-				toast.success(`Only letters, numbers, and underscores are allowed`, {
-					duration: 5000,
-				});
-				toast.success(`Your username: ${resData.data.user.username}`, {
-					duration: 8000,
-				});
-			}
-
+		onSuccess: (resData) => {
+			toast.success("Account created successfully. Please log in.");
 			setIsRegistered(true);
-			setShowModal(true);
 		},
 		onError: (error) => {
 			console.error(error);
@@ -70,11 +58,34 @@ const RegisterPage = () => {
 	});
 
 	if (isRegistered) {
-		if (!showModal) return <Navigate to="/" />;
+		return <Navigate to="/login" />;
 	}
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
+
+		if (isPending) return;
+
+		const { email, username, password, fullName } = formData;
+
+		if (!email || !username || !password || !fullName) {
+			toast.error("Please fill in all fields");
+			return;
+		}
+
+		if (password.length < 6) {
+			toast.error("Password must be at least 6 characters long");
+			return;
+		}
+		if (username.length < 3) {
+			toast.error("Username must be at least 3 characters long");
+			return;
+		}
+		if (!email.includes("@")) {
+			toast.error("Please enter a valid email address");
+			return;
+		}
+
 		signup(formData);
 	};
 
@@ -84,44 +95,6 @@ const RegisterPage = () => {
 
 	return (
 		<div className="max-w-screen-xl mx-auto flex h-svh px-10 overflow-x-hidden overflow-y-hidden">
-			{/* Custom Modal */}
-			{showModal && (
-				<div className="fixed inset-0 flex items-center justify-center z-50">
-					<div className="absolute inset-0 bg-black opacity-75"></div>
-					<div className="relative bg-black text-white p-6 rounded-lg shadow-lg z-10 max-w-sm w-full">
-						<h3 className="text-2xl font-bold mb-4">
-							Registration Successful ✅
-						</h3>
-						<p className="mb-6 text-lg">
-							Your registration was completed successfully.
-							<span className="font-semibold">
-								Please check your inbox for a verification email.
-							</span>
-							<br />
-							<br />
-							<span className="text-pretty font-semibold text-red-600 text-xl underline">
-								Note :
-							</span>
-							<br />
-							If you don’t receive the email within a few minutes,
-							<span className="text-pretty text-info-content animate-pulse">
-								please check your spam folder as well.
-							</span>
-							<br />
-							<br />
-							Ensure that the email address you provided is correct if you don’t
-							receive the email..
-						</p>
-						<button
-							className="bg-white text-black px-4 py-2 rounded hover:bg-gray-200"
-							onClick={() => setShowModal(false)}
-						>
-							Close
-						</button>
-					</div>
-				</div>
-			)}
-
 			<div className="flex-1 hidden lg:flex items-center justify-center ">
 				<XSvg className=" lg:w-2/3  fill-white svg-container hover:animate-bounce active:animate-bounce container" />
 			</div>

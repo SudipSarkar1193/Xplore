@@ -52,11 +52,11 @@ const Sidebar = () => {
 							</Link>
 						</CircleMenuItem>
 
-						<CircleMenuItem>
+						{/* <CircleMenuItem>
 							<Link to={`/bookmarks`}>
 								<FaRegBookmark size={25} />
 							</Link>
-						</CircleMenuItem>
+						</CircleMenuItem> */}
 
 						<CircleMenuItem>
 							<Link to="/notifications">

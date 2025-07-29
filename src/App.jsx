@@ -45,7 +45,7 @@ const App = () => {
 							<Route path="/signup" element={<Navigate to="/" />} />
 							<Route path="/notifications" element={<NotificationPage />} />
 							<Route path="/profile/:username" element={<ProfilePage />} />
-							<Route path="/bookmarks" element={<BookmarkPage />} />
+							{/* <Route path="/bookmarks" element={<BookmarkPage />} /> */}
 							<Route path="*" element={<Navigate to="/" />} />
 						</Routes>
 						<SearchUser />

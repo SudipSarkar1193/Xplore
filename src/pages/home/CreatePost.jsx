@@ -6,6 +6,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { backendServer } from "../../BackendServer";
 import { useAuthContext } from "../../context/AuthContext"; // Import context
+import { Link } from "react-router-dom";
+
 
 const CreatePost = () => {
 	const [text, setText] = useState("");

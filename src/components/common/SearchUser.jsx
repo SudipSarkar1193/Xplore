@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import RightPanel from "./RightPanel";
 import { FaSearch } from "react-icons/fa";
-
+import { useAuthContext } from "../../context/AuthContext.jsx"; 
 import useFollow from "../../custom_hooks/useFollow";
 import { backendServer } from "../../BackendServer";
 import LoadingSpinner from "./LoadingSpinner";
@@ -13,6 +13,7 @@ export const SearchUser = ({ show = false, limit = 15 }) => {
 	const queryClient = useQueryClient();
 	const [loadingUserId, setLoadingUserId] = useState(null);
 
+	const { authToken } = useAuthContext();
 	const { data: users, isLoading } = useQuery({
 		queryKey: ["users"],
 		queryFn: async () => {
@@ -20,16 +21,20 @@ export const SearchUser = ({ show = false, limit = 15 }) => {
 				method: "GET",
 				headers: {
 					"Content-Type": "application/json",
+					Authorization: `Bearer ${authToken}`,
 				},
 				credentials: "include",
+				
 			});
 
+			
+			
 			if (!res.ok) {
 				return null;
 			}
 
 			const jsonRes = await res.json();
-			return jsonRes.data.users;
+			return jsonRes;
 		},
 		retry: false,
 	});

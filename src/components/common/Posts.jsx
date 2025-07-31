@@ -3,9 +3,10 @@ import PostSkeleton from "../skeletons/PostSkeleton.jsx";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { backendServer } from "../../BackendServer.js";
-import { useAuthContext } from "../../context/AuthContext.jsx"; // Import context
+import { useAuthContext } from "../../context/AuthContext.jsx"; 
 
-const Posts = ({ feedType, userId }) => {
+const Posts = ({ feedType, userUuid }) => {
+	console.log("Posts component rendered with feedType:", feedType, "and userUuid:", userUuid);
 	const { authToken } = useAuthContext(); // Get token from context
 
 	const getPostEndpoint = () => {
@@ -17,11 +18,11 @@ const Posts = ({ feedType, userId }) => {
 			// NOTE: The backend endpoints for bookmarks, user posts, and likes are not yet available.
 
 			case "bookmarks":
-				return `${backendServer}/api/v1/posts/bookmarks`;
+				return `${backendServer}/api/posts/bookmarks`;
 			case "posts":
-				return `${backendServer}/api/v1/posts/posts/${userId}`;
+				return `${backendServer}/api/posts/user/${userUuid}`;
 			case "likes":
-				return `${backendServer}/api/v1/posts/likes/${userId}`;
+				return `${backendServer}/api/posts/likes/${userUuid}`;
 			default:
 				return `${backendServer}/api/posts/feed`;
 		}
@@ -30,7 +31,7 @@ const Posts = ({ feedType, userId }) => {
 	const POST_ENDPOINT = getPostEndpoint();
 
 	const { data, isLoading, refetch, isRefetching } = useQuery({
-		queryKey: ["posts", feedType, userId],
+		queryKey: ["posts", feedType, userUuid],
 		queryFn: async () => {
 			try {
 				const res = await fetch(POST_ENDPOINT, {
@@ -54,9 +55,10 @@ const Posts = ({ feedType, userId }) => {
 
 	useEffect(() => {
 		refetch();
-	}, [feedType, refetch, userId]);
+	}, [feedType, refetch, userUuid]);
 
 	const posts = Array.isArray(data) ? data : [];
+	console.log("Fetched posts:", posts);
 
 	return (
 		<div className="">

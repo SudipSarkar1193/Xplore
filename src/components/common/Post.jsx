@@ -23,7 +23,7 @@ const Post = ({ post, feedType }) => {
 	// The backend doesn't send an array of likes, only the count.
 	// We need to manage the "liked" state locally in the component.
 	// A future backend improvement would be to send an `isLikedByCurrentUser` boolean.
-	const [isLiked, setIsLiked] = useState(post.isLikedByCurrentUser || false); // Placeholder for now
+	const [isLiked, setIsLiked] = useState(post.likedByCurrentUser || false); // Placeholder for now
 	const [likeCount, setLikeCount] = useState(post.likeCount);
 
 	const postOwner = {

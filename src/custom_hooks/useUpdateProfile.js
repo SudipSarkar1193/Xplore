@@ -1,9 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { backendServer } from "../BackendServer";
+import { useAuthContext } from "../context/AuthContext";
 
 const useUpdateUserProfile = () => {
 	const queryClient = useQueryClient();
+	const { authToken } = useAuthContext();
+	console.log("useUpdateUserProfile hook initialized with authToken:", authToken);
 
 	const {
 		mutateAsync: updateProfile,
@@ -12,10 +15,11 @@ const useUpdateUserProfile = () => {
 	} = useMutation({
 		mutationFn: async (formData) => {
 			try {
-				const res = await fetch(`${backendServer}/api/v1/users/update`, {
-					method: "POST",
+				const res = await fetch(`${backendServer}/api/users/update`, {
+					method:"PUT",
 					headers: {
 						"Content-Type": "application/json",
+					    Authorization: `Bearer ${authToken}`,
 					},
 					credentials: "include",
 					body: JSON.stringify(formData),

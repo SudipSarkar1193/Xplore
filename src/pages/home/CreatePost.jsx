@@ -8,13 +8,13 @@ import { backendServer } from "../../BackendServer";
 import { useAuthContext } from "../../context/AuthContext"; // Import context
 import { Link } from "react-router-dom";
 
-
 const CreatePost = () => {
 	const [text, setText] = useState("");
 	const [img, setImg] = useState(null);
 	const imgRef = useRef(null);
 
 	const { authUser, authToken } = useAuthContext(); // Get user and token
+	console.log("authToken ->>>>", authToken);
 	const queryClient = useQueryClient();
 
 	const {
@@ -24,6 +24,7 @@ const CreatePost = () => {
 	} = useMutation({
 		mutationFn: async ({ content, imageUrls }) => {
 			try {
+				console.log("BAL", `Bearer ${authToken}`);
 				const res = await fetch(`${backendServer}/api/posts`, {
 					method: "POST",
 					headers: {

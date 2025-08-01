@@ -1,3 +1,5 @@
+import { FaTimes, FaPlus } from "react-icons/fa";
+import LoadingSpinner from "../LoadingSpinner.jsx";
 const PostModals = ({
 	post,
 	editContent,

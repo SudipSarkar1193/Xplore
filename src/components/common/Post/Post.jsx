@@ -40,7 +40,7 @@ const Post = ({ post, feedType, maxImages = 4 }) => {
 	const postOwner = {
 		username: post.authorUsername,
 		uuid: post.authorUuid,
-		profileImg: post.authorProfileImg || "/avatar-placeholder.png",
+		profileImg: post.authorProfilePictureUrl || "/avatar-placeholder.png",
 	};
 
 	const formattedDate = timeAgo(post.createdAt);
@@ -128,12 +128,14 @@ const Post = ({ post, feedType, maxImages = 4 }) => {
 	});
 
 	const { mutate: updatePost, isPending: isUpdating } = useMutation({
-		mutationFn: async (formData) => {
-			console.log("Updating post with data:", formData);
+		mutationFn: async (updateData) => {
 			const res = await fetch(`${backendServer}/api/posts/${post.postUuid}`, {
 				method: "PUT",
-				headers: { Authorization: `Bearer ${authToken}` },
-				body: formData,
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${authToken}`,
+				},
+				body: JSON.stringify(updateData),
 			});
 			const data = await res.json();
 			if (!res.ok) throw new Error(data.message || "Failed to update post");
@@ -163,8 +165,24 @@ const Post = ({ post, feedType, maxImages = 4 }) => {
 		const files = Array.from(e.target.files);
 		const remainingSlots = maxImages - editImages.length;
 		if (remainingSlots <= 0) return;
+
 		const filesToAdd = files.slice(0, remainingSlots);
-		setEditImages((prev) => [...prev, ...filesToAdd]);
+
+		// Process each file
+		filesToAdd.forEach((file) => {
+			if (file) {
+				const reader = new FileReader();
+
+				// This runs when the file is successfully read
+				reader.onload = () => {
+					// Add the result (Base64 string) to the state array
+					setEditImages((prevImages) => [...prevImages, reader.result]);
+				};
+
+				// This starts the reading process
+				reader.readAsDataURL(file);
+			}
+		});
 	};
 
 	const removeImage = (indexToRemove) => {
@@ -173,38 +191,38 @@ const Post = ({ post, feedType, maxImages = 4 }) => {
 
 	const handleUpdatePost = (e) => {
 		e.preventDefault();
-		const formData = new FormData();
-		formData.append("content", editContent);
 
-		const existingImageUrls = editImages.filter(
-			(img) => typeof img === "string"
+		// Filter images: separate old URLs from new Base64 strings.
+		// New images will be strings that start with "data:image/..."
+		const existingImageUrls = editImages.filter((img) =>
+			img.startsWith("http")
 		);
-		const newImageFiles = editImages.filter((img) => typeof img !== "string");
+		const newImagesAsBase64 = editImages.filter((img) =>
+			img.startsWith("data:")
+		);
 
-		newImageFiles.forEach((file) => formData.append("newImages", file));
-		formData.append("existingImages", JSON.stringify(existingImageUrls));
-
-		console.log("Submitting update with formData:", {
+		// JSON payload to send to the backend
+		const payload = {
 			content: editContent,
-			newImages: newImageFiles,
 			existingImages: existingImageUrls,
-		});
-		updatePost(formData);
+			newImages: newImagesAsBase64,
+		};
+
+		updatePost(payload);
 	};
 
 	return (
 		<div className="overflow-y-hidden no-scrollbar pr-4">
 			<div className="flex gap-2 items-start p-4 border-b border-gray-700">
 				<div className="avatar">
-					<Link
-						to={`/profile/${postOwner.username}`}
-						className="w-8 rounded-full overflow-hidden"
-					>
-						<img
-							src={postOwner.profileImg}
-							alt={`${postOwner.username}'s avatar`}
-						/>
-					</Link>
+					<div className="w-8 rounded-full">
+						<Link to={`/profile/${postOwner?.username}`}>
+							{/* Use the user's profile picture or a placeholder */}
+							<img
+								src={postOwner?.profileImg || "/avatar-placeholder.png"}
+							/>
+						</Link>
+					</div>
 				</div>
 				<div className="flex flex-col flex-1">
 					<PostHeader

@@ -1,9 +1,9 @@
 import Post from "./Post.jsx";
-import PostSkeleton from "../skeletons/PostSkeleton.jsx";
+import PostSkeleton from "../../skeletons/PostSkeleton.jsx";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { backendServer } from "../../BackendServer.js";
-import { useAuthContext } from "../../context/AuthContext.jsx"; 
+import { backendServer } from "../../../BackendServer.js";
+import { useAuthContext } from "../../../context/AuthContext.jsx"; 
 
 const Posts = ({ feedType, userUuid }) => {
 	console.log("Posts component rendered with feedType:", feedType, "and userUuid:", userUuid);

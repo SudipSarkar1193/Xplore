@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Posts from "../../components/common/Posts";
+import Posts from "../../components/common/Post/Posts";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 const BookmarkPage = () => {

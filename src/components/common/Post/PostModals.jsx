@@ -1,34 +1,134 @@
+import { useState, useRef, useEffect } from "react";
 import { FaTimes, FaPlus } from "react-icons/fa";
 import LoadingSpinner from "../LoadingSpinner.jsx";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import { backendServer } from "../../../BackendServer";
+import { useAuthContext } from "../../../context/AuthContext";
 
-const PostModals = ({
-	post,
-	editContent,
-	setEditContent,
-	editImages,
-	handleUpdatePost,
-	isUpdating,
-	handleImageChange,
-	removeImage,
-	editImageInputRef,
-	maxImages,
-	deletePost,
-}) => {
-	// A reusable function that prevents modal clicks from triggering parent actions like navigation
+const PostModals = ({ post, maxImages = 4 }) => {
+	const [editContent, setEditContent] = useState("");
+	const [editImages, setEditImages] = useState([]);
+	const editImageInputRef = useRef(null);
+	const { authToken, authUser } = useAuthContext();
+	const queryClient = useQueryClient();
+
+	useEffect(() => {
+		if (post) {
+			setEditContent(post.content);
+			setEditImages(post.imageUrls || []);
+		}
+	}, [post]);
+
+	const { mutate: updatePost, isPending: isUpdating } = useMutation({
+		mutationFn: async (rawUpdateData) => {
+			console.log("rawUpdateData", rawUpdateData);
+
+			console.log("authUser", authUser);
+
+			const updateData = { ...rawUpdateData, authorUUid: authUser.uuid };
+
+			console.log("uupdateData", updateData);
+			console.log(`Bearer ************************ ${authToken}`);
+			const res = await fetch(`${backendServer}/api/posts/${post.postUuid}`, {
+				method: "PUT",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${authToken}`,
+				},
+				body: JSON.stringify(updateData),
+			});
+
+			console.log("RES", res);
+			if (!res.ok) throw new Error(data.message || "Failed to update post");
+
+			const data = await res.json();
+			console.log(" DATA ", data);
+			return data;
+		},
+		onSuccess: () => {
+			toast.success("Post updated successfully!");
+			queryClient.invalidateQueries({ queryKey: ["posts"] });
+			queryClient.invalidateQueries({ queryKey: ["post", post.postUuid] });
+			document.getElementById(`edit_modal_${post.postUuid}`).close();
+		},
+		onError: (error) => {
+			console.error(error);
+
+			toast.error(error.message);
+		},
+	});
+
+	const { mutate: deletePost, isPending: isPendingDelete } = useMutation({
+		mutationFn: async () => {
+			const res = await fetch(`${backendServer}/api/posts/${post.postUuid}`, {
+				method: "DELETE",
+				headers: { Authorization: `Bearer ${authToken}` },
+			});
+			if (!res.ok) {
+				const errorData = await res
+					.json()
+					.catch(() => ({ message: "Failed to delete post" }));
+				throw new Error(errorData.message);
+			}
+		},
+		onSuccess: () => {
+			toast.success("Post deleted successfully");
+			queryClient.invalidateQueries({ queryKey: ["posts"] });
+		},
+		onError: (error) => toast.error(error.message),
+	});
+
+	const handleImageChange = (e) => {
+		const files = Array.from(e.target.files);
+		const remainingSlots = maxImages - editImages.length;
+		if (remainingSlots <= 0) return;
+
+		const filesToAdd = files.slice(0, remainingSlots);
+
+		filesToAdd.forEach((file) => {
+			if (file) {
+				const reader = new FileReader();
+				reader.onload = () => {
+					setEditImages((prevImages) => [...prevImages, reader.result]);
+				};
+				reader.readAsDataURL(file);
+			}
+		});
+	};
+
+	const removeImage = (indexToRemove) => {
+		setEditImages((prev) => prev.filter((_, index) => index !== indexToRemove));
+	};
+
+	const handleUpdatePost = (e) => {
+		e.preventDefault();
+		const existingImageUrls = editImages.filter((img) =>
+			img.startsWith("http")
+		);
+		const newImagesAsBase64 = editImages.filter((img) =>
+			img.startsWith("data:")
+		);
+		const payload = {
+			content: editContent,
+			existingImages: existingImageUrls,
+			newImages: newImagesAsBase64,
+		};
+		updatePost(payload);
+	};
+
 	const stopPropagation = (e) => e.stopPropagation();
 
 	return (
 		<>
-			{/* Edit Modal */}
-			<dialog id={`edit_modal_${post.postUuid}`} className="modal" onClick={stopPropagation}>
+			<dialog
+				id={`edit_modal_${post.postUuid}`}
+				className="modal"
+				onClick={stopPropagation}
+			>
 				<div className="modal-box max-w-2xl">
 					<h3 className="font-bold text-lg mb-4">Edit Post</h3>
-					<form
-						onSubmit={(e) => {
-							stopPropagation(e);
-							handleUpdatePost(e);
-						}}
-					>
+					<form onSubmit={handleUpdatePost}>
 						<div className="form-control mb-4">
 							<textarea
 								className="textarea textarea-bordered w-full h-24 resize-none"
@@ -47,11 +147,7 @@ const PostModals = ({
 								{editImages.map((image, index) => (
 									<div key={index} className="relative">
 										<img
-											src={
-												typeof image === "string"
-													? image
-													: URL.createObjectURL(image)
-											}
+											src={image}
 											className="w-full h-32 object-cover rounded border"
 											alt={`Edit preview ${index + 1}`}
 										/>
@@ -101,8 +197,11 @@ const PostModals = ({
 				</div>
 			</dialog>
 
-			{/* Delete Modal */}
-			<dialog id={`delete_modal_${post.postUuid}`} className="modal" onClick={stopPropagation}>
+			<dialog
+				id={`delete_modal_${post.postUuid}`}
+				className="modal"
+				onClick={stopPropagation}
+			>
 				<div className="modal-box">
 					<h3 className="font-bold text-lg">Confirm Deletion</h3>
 					<p className="py-4">Are you sure you want to delete this post?</p>
@@ -114,7 +213,7 @@ const PostModals = ({
 								deletePost();
 							}}
 						>
-							Delete
+							{isPendingDelete ? <LoadingSpinner size="sm" /> : "Delete"}
 						</button>
 						<form method="dialog" onSubmit={stopPropagation}>
 							<button className="btn" onClick={stopPropagation}>

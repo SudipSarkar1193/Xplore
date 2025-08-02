@@ -1,7 +1,6 @@
 import { FaTimes, FaPlus } from "react-icons/fa";
 import LoadingSpinner from "../LoadingSpinner.jsx";
-import Comment from "./Comment.jsx";
-import CreatePost from "../../../pages/home/CreatePost.jsx";
+
 const PostModals = ({
 	post,
 	editContent,
@@ -15,19 +14,28 @@ const PostModals = ({
 	maxImages,
 	deletePost,
 }) => {
+	// A reusable function that prevents modal clicks from triggering parent actions like navigation
+	const stopPropagation = (e) => e.stopPropagation();
+
 	return (
 		<>
 			{/* Edit Modal */}
-			<dialog id={`edit_modal_${post.postUuid}`} className="modal">
+			<dialog id={`edit_modal_${post.postUuid}`} className="modal" onClick={stopPropagation}>
 				<div className="modal-box max-w-2xl">
 					<h3 className="font-bold text-lg mb-4">Edit Post</h3>
-					<form onSubmit={handleUpdatePost}>
+					<form
+						onSubmit={(e) => {
+							stopPropagation(e);
+							handleUpdatePost(e);
+						}}
+					>
 						<div className="form-control mb-4">
 							<textarea
 								className="textarea textarea-bordered w-full h-24 resize-none"
 								placeholder="What's on your mind?"
 								value={editContent}
 								onChange={(e) => setEditContent(e.target.value)}
+								onClick={stopPropagation}
 							/>
 						</div>
 
@@ -51,7 +59,7 @@ const PostModals = ({
 											type="button"
 											className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
 											onClick={(e) => {
-												e.stopPropagation();
+												stopPropagation(e);
 												removeImage(index);
 											}}
 										>
@@ -79,16 +87,12 @@ const PostModals = ({
 								type="submit"
 								className="btn btn-primary"
 								disabled={isUpdating}
+								onClick={stopPropagation}
 							>
 								{isUpdating ? <LoadingSpinner size="sm" /> : "Update Post"}
 							</button>
-							<form method="dialog">
-								<button
-									className="btn"
-									onClick={(e) => {
-										e.stopPropagation();
-									}}
-								>
+							<form method="dialog" onSubmit={stopPropagation}>
+								<button className="btn" onClick={stopPropagation}>
 									Cancel
 								</button>
 							</form>
@@ -98,21 +102,22 @@ const PostModals = ({
 			</dialog>
 
 			{/* Delete Modal */}
-			<dialog id={`delete_modal_${post.postUuid}`} className="modal">
+			<dialog id={`delete_modal_${post.postUuid}`} className="modal" onClick={stopPropagation}>
 				<div className="modal-box">
 					<h3 className="font-bold text-lg">Confirm Deletion</h3>
 					<p className="py-4">Are you sure you want to delete this post?</p>
 					<div className="modal-action">
-						<button className="btn btn-error" onClick={() => deletePost()}>
+						<button
+							className="btn btn-error"
+							onClick={(e) => {
+								stopPropagation(e);
+								deletePost();
+							}}
+						>
 							Delete
 						</button>
-						<form method="dialog">
-							<button
-								className="btn"
-								onClick={(e) => {
-									e.stopPropagation();
-								}}
-							>
+						<form method="dialog" onSubmit={stopPropagation}>
+							<button className="btn" onClick={stopPropagation}>
 								Cancel
 							</button>
 						</form>

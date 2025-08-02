@@ -1,5 +1,8 @@
 import { FaTimes, FaPlus } from "react-icons/fa";
 import LoadingSpinner from "../LoadingSpinner.jsx";
+import Comment from "./Comment.jsx";
+
+
 const PostModals = ({
 	post,
 	editContent,
@@ -111,31 +114,13 @@ const PostModals = ({
 					<h3 className="font-bold text-lg mb-4">COMMENTS</h3>
 					<div className="flex flex-col gap-3 max-h-60 overflow-auto">
 						{post.comments?.length === 0 && (
-							<p className="text-sm text-slate-500">No comments yet.</p>
+							<p className="text-sm text-slate-500">
+								No comments yet. Be the first to comment!
+							</p>
 						)}
+						{/* Use the new Comment component */}
 						{post.comments?.map((c) => (
-							<div key={c.uuid} className="flex gap-2 items-start">
-								<div className="avatar">
-									<div className="w-8 rounded-full">
-										<img
-											src={c.authorProfileImg || "/avatar-placeholder.png"}
-										/>
-									</div>
-								</div>
-								<div className="flex flex-col">
-									<div className="flex items-center gap-1">
-										<span className="font-bold">{c.authorUsername}</span>
-										<span className="text-gray-700 text-sm">
-											@{c.authorUsername}
-										</span>
-									</div>
-									<div className="text-sm">
-										<pre className="whitespace-pre-wrap open-sans-medium">
-											{c.content}
-										</pre>
-									</div>
-								</div>
-							</div>
+							<Comment key={c.postUuid} comment={c} />
 						))}
 					</div>
 					<form

@@ -18,7 +18,7 @@ import LoadingSpinner from "../LoadingSpinner.jsx";
 import { timeAgo } from "../../../utils/timeAgo.js";
 import { backendServer } from "../../../BackendServer.js";
 import { useAuthContext } from "../../../context/AuthContext.jsx";
-
+import useComment from "../../../custom_hooks/useComment";
 import PostHeader from "./PostHeader";
 import PostBody from "./PostBody";
 import PostFooter from "./PostFooter";
@@ -102,31 +102,6 @@ const Post = ({ post, feedType, maxImages = 4 }) => {
 		},
 	});
 
-	const { mutate: commentPost, isPending: isCommenting } = useMutation({
-		mutationFn: async () => {
-			const res = await fetch(
-				`${backendServer}/api/posts/${post.postUuid}/comments`,
-				{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						Authorization: `Bearer ${authToken}`,
-					},
-					body: JSON.stringify({ content: comment }),
-				}
-			);
-			const data = await res.json();
-			if (!res.ok) throw new Error(data.message || "Failed to comment");
-			return data;
-		},
-		onSuccess: () => {
-			toast.success("Comment posted successfully");
-			setComment("");
-			queryClient.invalidateQueries({ queryKey: ["posts", feedType] });
-		},
-		onError: (error) => toast.error(error.message),
-	});
-
 	const { mutate: updatePost, isPending: isUpdating } = useMutation({
 		mutationFn: async (updateData) => {
 			const res = await fetch(`${backendServer}/api/posts/${post.postUuid}`, {
@@ -149,6 +124,8 @@ const Post = ({ post, feedType, maxImages = 4 }) => {
 		onError: (error) => toast.error(error.message),
 	});
 
+	const { commentPost, isCommenting } = useComment();
+
 	// Event Handlers
 
 	const handleLikePost = (e) => {
@@ -158,7 +135,11 @@ const Post = ({ post, feedType, maxImages = 4 }) => {
 
 	const handlePostComment = (e) => {
 		e.preventDefault();
-		if (!isCommenting) commentPost();
+		
+		if (isCommenting || !comment.trim()) return;
+
+		commentPost({ parentPostUuid: post.postUuid, content: comment });
+		setComment("");
 	};
 
 	const handleImageChange = (e) => {
@@ -218,9 +199,7 @@ const Post = ({ post, feedType, maxImages = 4 }) => {
 					<div className="w-8 rounded-full">
 						<Link to={`/profile/${postOwner?.username}`}>
 							{/* Use the user's profile picture or a placeholder */}
-							<img
-								src={postOwner?.profileImg || "/avatar-placeholder.png"}
-							/>
+							<img src={postOwner?.profileImg || "/avatar-placeholder.png"} />
 						</Link>
 					</div>
 				</div>

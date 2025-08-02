@@ -4,10 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { FaArrowLeft } from "react-icons/fa6";
 
 import Post from "../../components/common/Post/Post";
-import Posts from "../../components/common/Post/Posts";
 import PostSkeleton from "../../components/skeletons/PostSkeleton";
 import { backendServer } from "../../BackendServer";
 import { useAuthContext } from "../../context/AuthContext";
+import CreatePost from "../home/CreatePost";
 
 const PostPage = () => {
 	const { postUuid } = useParams();
@@ -61,6 +61,7 @@ const PostPage = () => {
 					<Post post={post} />
 					<div className="border-t border-gray-700 my-4">
 						<h3 className="text-xl font-bold px-4 py-2">Replies</h3>
+						<CreatePost parentPostUuid={post.postUuid} />
 						{post.comments && post.comments.length > 0 ? (
 							post.comments.map((comment) => (
 								<Post key={comment.postUuid} post={comment} />

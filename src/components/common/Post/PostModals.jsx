@@ -14,7 +14,6 @@ const PostModals = ({
 	editImageInputRef,
 	maxImages,
 	deletePost,
-	
 }) => {
 	return (
 		<>
@@ -51,7 +50,10 @@ const PostModals = ({
 										<button
 											type="button"
 											className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
-											onClick={() => removeImage(index)}
+											onClick={(e) => {
+												e.stopPropagation();
+												removeImage(index);
+											}}
 										>
 											<FaTimes />
 										</button>
@@ -81,7 +83,14 @@ const PostModals = ({
 								{isUpdating ? <LoadingSpinner size="sm" /> : "Update Post"}
 							</button>
 							<form method="dialog">
-								<button className="btn">Cancel</button>
+								<button
+									className="btn"
+									onClick={(e) => {
+										e.stopPropagation();
+									}}
+								>
+									Cancel
+								</button>
 							</form>
 						</div>
 					</form>
@@ -98,13 +107,18 @@ const PostModals = ({
 							Delete
 						</button>
 						<form method="dialog">
-							<button className="btn">Cancel</button>
+							<button
+								className="btn"
+								onClick={(e) => {
+									e.stopPropagation();
+								}}
+							>
+								Cancel
+							</button>
 						</form>
 					</div>
 				</div>
 			</dialog>
-
-			
 		</>
 	);
 };

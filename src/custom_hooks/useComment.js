@@ -8,7 +8,7 @@ const useComment = () => {
 	const queryClient = useQueryClient();
 
 	const { mutate: commentPost, isPending: isCommenting } = useMutation({
-		mutationFn: async ({ parentPostUuid, content }) => {
+		mutationFn: async ({ parentPostUuid, content, imageUrls }) => {
 			try {
 				const res = await fetch(
 					`${backendServer}/api/posts/${parentPostUuid}/comments`,
@@ -18,7 +18,7 @@ const useComment = () => {
 							"Content-Type": "application/json",
 							Authorization: `Bearer ${authToken}`,
 						},
-						body: JSON.stringify({ content }),
+						body: JSON.stringify({ content, imageUrls }),
 					}
 				);
 				const data = await res.json();
@@ -32,13 +32,12 @@ const useComment = () => {
 		},
 		onSuccess: () => {
 			toast.success("Comment posted successfully!");
-			// Invalidate all queries starting with 'posts' to refresh the feed
 			queryClient.invalidateQueries({ queryKey: ["posts"] });
+			queryClient.invalidateQueries({ queryKey: ["post"] });
 		},
 		onError: (error) => {
             console.log("Error posting comment:", error);
             toast.error(error.message || "Failed to post comment");
-			toast.error(error.message);
 		},
 	});
 

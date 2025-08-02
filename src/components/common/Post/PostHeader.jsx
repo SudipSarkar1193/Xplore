@@ -27,17 +27,21 @@ const PostHeader = ({
 						<>
 							<FaEdit
 								className="cursor-pointer hover:text-blue-500"
-								onClick={() =>
-									document.getElementById(`edit_modal_${postUuid}`).showModal()
-								}
+								onClick={(e) => {
+									e.preventDefault();
+									e.stopPropagation();
+									document.getElementById(`edit_modal_${postUuid}`).showModal();
+								}}
 							/>
 							<FaTrash
 								className="cursor-pointer hover:text-red-500"
-								onClick={() =>
+								onClick={(e) => {
+									e.preventDefault();
+									e.stopPropagation();
 									document
 										.getElementById(`delete_modal_${postUuid}`)
-										.showModal()
-								}
+										.showModal();
+								}}
 							/>
 						</>
 					)}

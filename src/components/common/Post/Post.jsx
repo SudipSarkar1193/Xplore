@@ -1,14 +1,3 @@
-import {
-	FaRegComment,
-	FaHeart,
-	FaRegHeart,
-	FaBookmark,
-	FaRegBookmark,
-	FaTrash,
-	FaEdit,
-	FaTimes,
-	FaPlus,
-} from "react-icons/fa";
 import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
 import { useQueryClient, useMutation } from "@tanstack/react-query";

@@ -10,7 +10,7 @@ import {
 	FaPlus,
 } from "react-icons/fa";
 import { useState, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
@@ -31,9 +31,9 @@ const Post = ({ post, feedType, maxImages = 4 }) => {
 
 	const { authUser, authToken } = useAuthContext();
 	const queryClient = useQueryClient();
+	const navigate = useNavigate(); // Initialize useNavigate
 	const editImageInputRef = useRef(null);
 
-	// The backend doesn't send the user's like status, so we manage it locally.
 	const [isLiked, setIsLiked] = useState(post.likedByCurrentUser || false);
 	const [likeCount, setLikeCount] = useState(post.likeCount);
 
@@ -45,10 +45,9 @@ const Post = ({ post, feedType, maxImages = 4 }) => {
 
 	const formattedDate = timeAgo(post.createdAt);
 	const isMyPost = authUser?.uuid === post.authorUuid;
-	const isBookmarked = authUser?.bookmarks?.includes(post.postUuid); // Placeholder
+	const isBookmarked = authUser?.bookmarks?.includes(post.postUuid);
 
 	//  Mutations (TanStack Query)
-	// =================================================================================
 
 	const { mutate: deletePost, isPending: isPendingDelete } = useMutation({
 		mutationFn: async () => {
@@ -130,12 +129,14 @@ const Post = ({ post, feedType, maxImages = 4 }) => {
 
 	const handleLikePost = (e) => {
 		e.preventDefault();
+		e.stopPropagation(); // Prevent navigation when liking
 		!isLiking && likePost();
 	};
 
 	const handlePostComment = (e) => {
 		e.preventDefault();
-		
+		e.stopPropagation(); // Prevent navigation
+
 		if (isCommenting || !comment.trim()) return;
 
 		commentPost({ parentPostUuid: post.postUuid, content: comment });
@@ -193,12 +194,17 @@ const Post = ({ post, feedType, maxImages = 4 }) => {
 	};
 
 	return (
-		<div className="overflow-y-hidden no-scrollbar pr-4">
+		<div
+			className="overflow-y-hidden no-scrollbar pr-4 cursor-pointer"
+			onClick={() => navigate(`/post/${post.postUuid}`)} // Add onClick handler
+		>
 			<div className="flex gap-2 items-start p-4 border-b border-gray-700">
 				<div className="avatar">
 					<div className="w-8 rounded-full">
-						<Link to={`/profile/${postOwner?.username}`}>
-							{/* Use the user's profile picture or a placeholder */}
+						<Link
+							to={`/profile/${postOwner?.username}`}
+							onClick={(e) => e.stopPropagation()} // Prevent parent onClick
+						>
 							<img src={postOwner?.profileImg || "/avatar-placeholder.png"} />
 						</Link>
 					</div>
@@ -234,10 +240,6 @@ const Post = ({ post, feedType, maxImages = 4 }) => {
 				editImageInputRef={editImageInputRef}
 				maxImages={maxImages}
 				deletePost={deletePost}
-				comment={comment}
-				setComment={setComment}
-				handlePostComment={handlePostComment}
-				isCommenting={isCommenting}
 			/>
 		</div>
 	);

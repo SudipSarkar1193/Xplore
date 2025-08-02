@@ -1,8 +1,7 @@
 import { FaTimes, FaPlus } from "react-icons/fa";
 import LoadingSpinner from "../LoadingSpinner.jsx";
 import Comment from "./Comment.jsx";
-
-
+import CreatePost from "../../../pages/home/CreatePost.jsx";
 const PostModals = ({
 	post,
 	editContent,
@@ -15,10 +14,7 @@ const PostModals = ({
 	editImageInputRef,
 	maxImages,
 	deletePost,
-	comment,
-	setComment,
-	handlePostComment,
-	isCommenting,
+	
 }) => {
 	return (
 		<>
@@ -108,40 +104,7 @@ const PostModals = ({
 				</div>
 			</dialog>
 
-			{/* Comments Modal */}
-			<dialog id={`comments_modal_${post.postUuid}`} className="modal">
-				<div className="modal-box">
-					<h3 className="font-bold text-lg mb-4">COMMENTS</h3>
-					<div className="flex flex-col gap-3 max-h-60 overflow-auto">
-						{post.comments?.length === 0 && (
-							<p className="text-sm text-slate-500">
-								No comments yet. Be the first to comment!
-							</p>
-						)}
-						{/* Use the new Comment component */}
-						{post.comments?.map((c) => (
-							<Comment key={c.postUuid} comment={c} />
-						))}
-					</div>
-					<form
-						className="flex gap-2 items-center mt-4 border-t border-gray-600 pt-2"
-						onSubmit={handlePostComment}
-					>
-						<textarea
-							className="textarea w-full p-1 rounded text-md resize-none border focus:outline-none border-gray-800"
-							placeholder="Add a comment..."
-							value={comment}
-							onChange={(e) => setComment(e.target.value)}
-						/>
-						<button className="btn btn-primary rounded-full btn-sm text-white px-4">
-							{isCommenting ? <LoadingSpinner size="sm" /> : "Post"}
-						</button>
-					</form>
-				</div>
-				<form method="dialog" className="modal-backdrop">
-					<button className="outline-none">close</button>
-				</form>
-			</dialog>
+			
 		</>
 	);
 };

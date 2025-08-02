@@ -5,18 +5,21 @@ import "./index.css";
 import { BackgroundPage } from "./components/BackgroundPage/BackgroundPage";
 import LoadingSpinner from "./components/common/LoadingSpinner";
 import { SearchUser } from "./components/common/SearchUser";
-import { useAuthContext } from "./context/AuthContext"; 
+import { useAuthContext } from "./context/AuthContext";
 
 const ErrorPage = lazy(() => import("./pages/error/ErrorPage"));
 const HomePage = lazy(() => import("./pages/home/HomePage"));
 const RegisterPage = lazy(() => import("./pages/auth/RegisterPage"));
 const LoginPage = lazy(() => import("./pages/auth/LoginPage"));
-const NotificationPage = lazy(() => import("./pages/notification/NotificationPage"));
+const NotificationPage = lazy(() =>
+	import("./pages/notification/NotificationPage")
+);
 const BookmarkPage = lazy(() => import("./pages/profile/BookmarkPage"));
 const ProfilePage = lazy(() => import("./pages/profile/ProfilePage"));
 const EmailVerifyPage = lazy(() => import("./pages/auth/EmailVerifyPage"));
 const Sidebar = lazy(() => import("./components/common/Sidebar"));
 const RightPanel = lazy(() => import("./components/common/RightPanel"));
+const PostPage = lazy(() => import("./pages/post/PostPage")); 
 
 const App = () => {
 	// Using the authUser and isLoading state from the context
@@ -36,7 +39,7 @@ const App = () => {
 		<div className="flex justify-between max-w-6xl mx-auto">
 			<Toaster />
 			<Suspense fallback={<StyledLoadingSpinner />}>
-				{authUser ? ( // Check if authUser exists
+				{authUser ? ( // if authUser exists i.e user is already autheticated
 					<>
 						<Sidebar />
 						<Routes>
@@ -45,6 +48,8 @@ const App = () => {
 							<Route path="/signup" element={<Navigate to="/" />} />
 							<Route path="/notifications" element={<NotificationPage />} />
 							<Route path="/profile/:username" element={<ProfilePage />} />
+							<Route path="/post/:postUuid" element={<PostPage />} />
+
 							{/* <Route path="/bookmarks" element={<BookmarkPage />} /> */}
 							<Route path="*" element={<Navigate to="/" />} />
 						</Routes>
@@ -56,10 +61,10 @@ const App = () => {
 						<Routes>
 							<Route path="/login" element={<LoginPage />} />
 							<Route path="/signup" element={<RegisterPage />} />
-							<Route
+							{/* <Route
 								path="/users/:id/verify/:token"
 								element={<EmailVerifyPage />}
-							/>
+							/> */}
 							<Route path="*" element={<Navigate to="/login" />} />
 						</Routes>
 					</>

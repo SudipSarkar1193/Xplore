@@ -7,8 +7,9 @@ import toast from "react-hot-toast";
 import { backendServer } from "../../BackendServer";
 import { useAuthContext } from "../../context/AuthContext"; // Import context
 import { Link } from "react-router-dom";
+import useComment from "../../custom_hooks/useComment";
 
-const CreatePost = () => {
+const CreatePost = ({ type = "post" }) => {
 	const [text, setText] = useState("");
 	const [img, setImg] = useState(null);
 	const imgRef = useRef(null);
@@ -16,6 +17,8 @@ const CreatePost = () => {
 	const { authUser, authToken } = useAuthContext(); // Get user and token
 	console.log("authToken ->>>>", authToken);
 	const queryClient = useQueryClient();
+
+	const { commentPost, isCommenting } = useComment;
 
 	const {
 		mutate: createPost,
@@ -54,6 +57,16 @@ const CreatePost = () => {
 			console.error(error);
 		},
 	});
+
+	const handlePostComment = (e) => {
+		e.preventDefault();
+		e.stopPropagation(); // Prevent navigation
+
+		if (isCommenting || !content.trim()) return;
+
+		commentPost({ parentPostUuid: post.postUuid, content });
+		setComment("");
+	};
 
 	const handleSubmit = (e) => {
 		e.preventDefault();

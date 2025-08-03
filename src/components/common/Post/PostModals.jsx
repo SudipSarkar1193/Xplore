@@ -22,14 +22,14 @@ const PostModals = ({ post, maxImages = 4 }) => {
 
 	const { mutate: updatePost, isPending: isUpdating } = useMutation({
 		mutationFn: async (rawUpdateData) => {
-			console.log("rawUpdateData", rawUpdateData);
-
-			console.log("authUser", authUser);
-
 			const updateData = { ...rawUpdateData, authorUUid: authUser.uuid };
-
-			console.log("uupdateData", updateData);
-			console.log(`Bearer ************************ ${authToken}`);
+			if (
+				!updateData.content &&
+				updateData.existingImages.length === 0 &&
+				updateData.newImages.length === 0
+			) {
+				throw new Error("Post must have content or images");
+			}
 			const res = await fetch(`${backendServer}/api/posts/${post.postUuid}`, {
 				method: "PUT",
 				headers: {
@@ -75,8 +75,14 @@ const PostModals = ({ post, maxImages = 4 }) => {
 		onSuccess: () => {
 			toast.success("Post deleted successfully");
 			queryClient.invalidateQueries({ queryKey: ["posts"] });
+			queryClient.invalidateQueries({ queryKey: ["post", post.postUuid] });
+			document.getElementById(`delete_modal_${postUuid}`).close();
 		},
-		onError: (error) => toast.error(error.message),
+		onError: (error) => {
+			console.error(error);
+
+			toast.error(error.message);
+		},
 	});
 
 	const handleImageChange = (e) => {
@@ -209,6 +215,7 @@ const PostModals = ({ post, maxImages = 4 }) => {
 						<button
 							className="btn btn-error"
 							onClick={(e) => {
+								e.preventDefault();
 								stopPropagation(e);
 								deletePost();
 							}}

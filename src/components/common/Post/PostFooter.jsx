@@ -23,48 +23,67 @@ const PostFooter = ({
 }) => {
 	const queryClient = useQueryClient();
 	const { authToken } = useAuthContext();
+	
+
 	const { mutate: incrementShareCount, isPending: isIncreasingShareCount } =
-		useMutation({
-			mutationFn: async () => {
-				console.log("Inside incrementShareCount mutationFn");
-				const res = await fetch(
-					`${backendServer}/api/posts/${post.postUuid}/increase-share-count`,
-					{
-						method: "put",
-						headers: { Authorization: `Bearer ${authToken}` },
-					}
-				);
-				const data = await res.json();
-				console.log("Response from incrementShareCount:", data);
-				if (!res.ok) throw new Error(data.message || "Failed to share post");
-				return data;
-			},
-			retry: (failureCount, error) => {
-				// Don't retry if it's an Unauthorized error (401)
-				if (
-					error.message.trim() === "Unauthorized" ||
-					error.message.trim() ===
-						"Full authentication is required to access this resource"
-				) {
-					return false;
-				}
+    useMutation({
+        mutationFn: async () => {
+            const res = await fetch(
+                `${backendServer}/api/posts/${post.postUuid}/increase-share-count`,
+                {
+                    method: "put",
+                    headers: { Authorization: `Bearer ${authToken}` },
+                }
+            );
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "Failed to share post");
+            return data;
+        },
+        onMutate: async () => {
+            // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+            await queryClient.cancelQueries({ queryKey: ["posts"] });
+            await queryClient.cancelQueries({ queryKey: ["post", post.postUuid] });
 
-				// Retry up to 10 times for other errors
-				return failureCount < 4;
-			},
+            // Snapshot the previous value
+            const previousPost = queryClient.getQueryData(["post", post.postUuid]);
+            const previousPosts = queryClient.getQueryData(["posts"]);
 
-			retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000), // 1s, 2s, 4s, 8s, 10s
+            // Optimistically update to the new value
+            if (previousPost) {
+                queryClient.setQueryData(["post", post.postUuid], {
+                    ...previousPost,
+                    shareCount: previousPost.shareCount + 1,
+                });
+            }
 
-			onSuccess: (data) => {
-				console.log(data.message || "increased share count successfully");
-				queryClient.invalidateQueries({ queryKey: ["post", post.postUuid] });
-				queryClient.invalidateQueries({ queryKey: ["posts"] });
-			},
-			onError: (error) => {
-				console.log("error.message", error.message);
-				console.error(error);
-			},
-		});
+            if (previousPosts) {
+                const updatedPosts = previousPosts.map(p =>
+                    p.postUuid === post.postUuid
+                        ? { ...p, shareCount: p.shareCount + 1 }
+                        : p
+                );
+                queryClient.setQueryData(["posts"], updatedPosts);
+            }
+
+            // Return a context object with the snapshotted value
+            return { previousPost, previousPosts };
+        },
+        // If the mutation fails, use the context returned from onMutate to roll back
+        onError: (err, newPost, context) => {
+            if (context.previousPost) {
+                queryClient.setQueryData(["post", post.postUuid], context.previousPost);
+            }
+            if (context.previousPosts) {
+                queryClient.setQueryData(["posts"], context.previousPosts);
+            }
+            console.error("Failed to increment the count share ");
+        },
+        // Always refetch after error or success to ensure data consistency
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ["post", post.postUuid] });
+            queryClient.invalidateQueries({ queryKey: ["posts"] });
+        },
+    });
 
 	const sharePost = async (e) => {
 		e.stopPropagation(); // Prevent triggering the post click event

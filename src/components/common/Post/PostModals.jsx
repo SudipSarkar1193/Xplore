@@ -88,6 +88,8 @@ const PostModals = ({ post, maxImages = 4, parentPostUuid }) => {
 			if (parentPostUuid) {
 				// If it's a comment, invalidate the parent post's query
 				queryClient.invalidateQueries({ queryKey: ["post", parentPostUuid] });
+				// Navigate to the parent post's page after deleting a comment
+				navigate(`/post/${parentPostUuid}`);
 			} else {
 				// If it's a top-level post, invalidate the general posts list
 				queryClient.invalidateQueries({ queryKey: ["posts"] });

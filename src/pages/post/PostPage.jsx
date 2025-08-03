@@ -50,7 +50,6 @@ const PostPage = () => {
 			{!isLoading && !isRefetching && post && (
 				<div>
 					<div className="flex gap-10 px-4 py-3 items-center backdrop-blur-md bg-gray-950/80 sticky top-0 z-10 border-b border-gray-800">
-						
 						<Link
 							to={`${
 								post.parentPostUuid ? `/post/${post.parentPostUuid}` : "/"
@@ -61,7 +60,7 @@ const PostPage = () => {
 						</Link>
 						<h2 className="text-xl font-bold">Post</h2>
 					</div>
-					<Post post={post} />
+					<Post post={post} showInfo={true} />
 					<div className="border-t border-gray-700 my-4">
 						<h3 className="text-xl font-bold px-4 py-2">Replies</h3>
 						<CreatePost parentPostUuid={post.postUuid} />
@@ -71,6 +70,7 @@ const PostPage = () => {
 									key={comment.postUuid}
 									post={comment}
 									parentPostUuid={post.postUuid}
+									showInfo={true}
 								/>
 							))
 						) : (

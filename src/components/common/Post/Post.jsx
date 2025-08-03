@@ -12,7 +12,7 @@ import PostBody from "./PostBody";
 import PostFooter from "./PostFooter";
 import PostModals from "./PostModals";
 
-const Post = ({ post, feedType ,parentPostUuid }) => {
+const Post = ({ post, feedType, parentPostUuid, showInfo = false }) => {
 	const { authUser, authToken } = useAuthContext();
 	const queryClient = useQueryClient();
 	const navigate = useNavigate();
@@ -77,8 +77,8 @@ const Post = ({ post, feedType ,parentPostUuid }) => {
 				<div className="avatar">
 					<div className="w-8 rounded-full">
 						<Link
-							to={`/profile/${postOwner?.username}`}
 							onClick={(e) => e.stopPropagation()}
+							to={`/profile/${postOwner?.username}`}
 						>
 							<img src={postOwner?.profileImg || "/avatar-placeholder.png"} />
 						</Link>
@@ -99,6 +99,7 @@ const Post = ({ post, feedType ,parentPostUuid }) => {
 						likeCount={likeCount}
 						isBookmarked={isBookmarked}
 						handleLikePost={handleLikePost}
+						showInfo={showInfo}
 					/>
 				</div>
 			</div>

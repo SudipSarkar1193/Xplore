@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { backendServer } from "../../../BackendServer";
 import { useAuthContext } from "../../../context/AuthContext";
 
-const PostModals = ({ post, maxImages = 4 }) => {
+const PostModals = ({ post, maxImages = 4, parentPostUuid }) => {
 	const [editContent, setEditContent] = useState("");
 	const [editImages, setEditImages] = useState([]);
 	const editImageInputRef = useRef(null);
@@ -39,17 +39,26 @@ const PostModals = ({ post, maxImages = 4 }) => {
 				body: JSON.stringify(updateData),
 			});
 
-			console.log("RES", res);
+			
 			if (!res.ok) throw new Error(data.message || "Failed to update post");
 
 			const data = await res.json();
-			console.log(" DATA ", data);
+			;
 			return data;
 		},
 		onSuccess: () => {
 			toast.success("Post updated successfully!");
-			queryClient.invalidateQueries({ queryKey: ["posts"] });
+			if (parentPostUuid) {
+				// It's a comment, so invalidate the PARENT post's query to refetch comments
+				queryClient.invalidateQueries({ queryKey: ["post", parentPostUuid] });
+			} else {
+				// It's a top-level post, invalidate the general feed
+				queryClient.invalidateQueries({ queryKey: ["posts"] });
+			}
+
+			// Also invalidate the query for the individual post/comment itself
 			queryClient.invalidateQueries({ queryKey: ["post", post.postUuid] });
+			
 			document.getElementById(`edit_modal_${post.postUuid}`).close();
 		},
 		onError: (error) => {
@@ -74,8 +83,16 @@ const PostModals = ({ post, maxImages = 4 }) => {
 		},
 		onSuccess: () => {
 			toast.success("Post deleted successfully");
-			queryClient.invalidateQueries({ queryKey: ["posts"] });
+			if (parentPostUuid) {
+				// If it's a comment, invalidate the parent post's query
+				queryClient.invalidateQueries({ queryKey: ["post", parentPostUuid] });
+			} else {
+				// If it's a top-level post, invalidate the general posts list
+				queryClient.invalidateQueries({ queryKey: ["posts"] });
+			}
+
 			queryClient.invalidateQueries({ queryKey: ["post", post.postUuid] });
+
 			document.getElementById(`delete_modal_${post.postUuid}`).close();
 		},
 		onError: (error) => {

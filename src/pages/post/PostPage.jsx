@@ -64,12 +64,14 @@ const PostPage = () => {
 						<CreatePost parentPostUuid={post.postUuid} />
 						{post.comments && post.comments.length > 0 ? (
 							post.comments.map((comment) => (
-								<Post key={comment.postUuid} post={comment} />
+								<Post
+									key={comment.postUuid}
+									post={comment}
+									parentPostUuid={post.postUuid}
+								/>
 							))
 						) : (
-							<p className="text-center text-gray-500 py-4">
-								No replies yet.
-							</p>
+							<p className="text-center text-gray-500 py-4">No replies yet.</p>
 						)}
 					</div>
 				</div>

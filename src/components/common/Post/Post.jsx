@@ -12,7 +12,7 @@ import PostBody from "./PostBody";
 import PostFooter from "./PostFooter";
 import PostModals from "./PostModals";
 
-const Post = ({ post, feedType }) => {
+const Post = ({ post, feedType ,parentPostUuid }) => {
 	const { authUser, authToken } = useAuthContext();
 	const queryClient = useQueryClient();
 	const navigate = useNavigate();
@@ -102,7 +102,7 @@ const Post = ({ post, feedType }) => {
 					/>
 				</div>
 			</div>
-			{isMyPost && <PostModals post={post} />}
+			{isMyPost && <PostModals post={post} parentPostUuid={parentPostUuid} />}
 		</div>
 	);
 };

@@ -50,8 +50,11 @@ const PostPage = () => {
 			{!isLoading && !isRefetching && post && (
 				<div>
 					<div className="flex gap-10 px-4 py-3 items-center backdrop-blur-md bg-gray-950/80 sticky top-0 z-10 border-b border-gray-800">
+						
 						<Link
-							to="/"
+							to={`${
+								post.parentPostUuid ? `/post/${post.parentPostUuid}` : "/"
+							}`}
 							className="hover:bg-gray-800 p-2 rounded-full transition-colors"
 						>
 							<FaArrowLeft className="w-4 h-4 text-white" />

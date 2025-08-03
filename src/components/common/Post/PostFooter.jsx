@@ -58,6 +58,7 @@ const PostFooter = ({
 			onSuccess: (data) => {
 				console.log(data.message || "increased share count successfully");
 				queryClient.invalidateQueries({ queryKey: ["post", post.postUuid] });
+				queryClient.invalidateQueries({ queryKey: ["posts"] });
 			},
 			onError: (error) => {
 				console.log("error.message", error.message);

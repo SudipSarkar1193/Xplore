@@ -76,7 +76,7 @@ const PostModals = ({ post, maxImages = 4 }) => {
 			toast.success("Post deleted successfully");
 			queryClient.invalidateQueries({ queryKey: ["posts"] });
 			queryClient.invalidateQueries({ queryKey: ["post", post.postUuid] });
-			document.getElementById(`delete_modal_${postUuid}`).close();
+			document.getElementById(`delete_modal_${post.postUuid}`).close();
 		},
 		onError: (error) => {
 			console.error(error);

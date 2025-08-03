@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { backendServer } from "../../../BackendServer";
 import { useAuthContext } from "../../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const PostModals = ({ post, maxImages = 4, parentPostUuid }) => {
 	const [editContent, setEditContent] = useState("");
@@ -12,6 +13,8 @@ const PostModals = ({ post, maxImages = 4, parentPostUuid }) => {
 	const editImageInputRef = useRef(null);
 	const { authToken, authUser } = useAuthContext();
 	const queryClient = useQueryClient();
+
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		if (post) {
@@ -39,11 +42,9 @@ const PostModals = ({ post, maxImages = 4, parentPostUuid }) => {
 				body: JSON.stringify(updateData),
 			});
 
-			
 			if (!res.ok) throw new Error(data.message || "Failed to update post");
 
 			const data = await res.json();
-			;
 			return data;
 		},
 		onSuccess: () => {
@@ -58,7 +59,7 @@ const PostModals = ({ post, maxImages = 4, parentPostUuid }) => {
 
 			// Also invalidate the query for the individual post/comment itself
 			queryClient.invalidateQueries({ queryKey: ["post", post.postUuid] });
-			
+
 			document.getElementById(`edit_modal_${post.postUuid}`).close();
 		},
 		onError: (error) => {
@@ -83,12 +84,15 @@ const PostModals = ({ post, maxImages = 4, parentPostUuid }) => {
 		},
 		onSuccess: () => {
 			toast.success("Post deleted successfully");
+
 			if (parentPostUuid) {
 				// If it's a comment, invalidate the parent post's query
 				queryClient.invalidateQueries({ queryKey: ["post", parentPostUuid] });
 			} else {
 				// If it's a top-level post, invalidate the general posts list
 				queryClient.invalidateQueries({ queryKey: ["posts"] });
+
+				navigate("/"); // Navigate to home after deletion
 			}
 
 			queryClient.invalidateQueries({ queryKey: ["post", post.postUuid] });

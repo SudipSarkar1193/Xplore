@@ -15,6 +15,9 @@ const PostModals = ({ post, maxImages = 4, parentPostUuid }) => {
 	const queryClient = useQueryClient();
 
 	const navigate = useNavigate();
+	console.log("parentPostUuid top:", parentPostUuid);
+	console.log("post.parentPostUuid top:", post.parentPostUuid);
+	console.log("post top:", post);
 
 	useEffect(() => {
 		if (post) {
@@ -84,22 +87,33 @@ const PostModals = ({ post, maxImages = 4, parentPostUuid }) => {
 		},
 		onSuccess: () => {
 			toast.success("Post deleted successfully");
+			
+			const parentId = parentPostUuid || post.parentPostUuid;
 
-			if (parentPostUuid) {
-				// If it's a comment, invalidate the parent post's query
-				queryClient.invalidateQueries({ queryKey: ["post", parentPostUuid] });
-				// Navigate to the parent post's page after deleting a comment
-				navigate(`/post/${parentPostUuid}`);
-			} else {
-				// If it's a top-level post, invalidate the general posts list
-				queryClient.invalidateQueries({ queryKey: ["posts"] });
+			console.log("", "parentId:", parentId);
+			console.log("", "parentPostUuid:", parentPostUuid);
+			console.log("", "post.parentPostUuid:", post.parentPostUuid);
 
-				navigate("/"); // Navigate to home after deletion
-			}
+		if (parentId) {
+			// This was a comment. Invalidate the parent post to refetch the comment list.
+			queryClient.invalidateQueries({ queryKey: ["post", parentId] });
+			// Navigate to the parent post's page.
+			navigate(`/post/${parentId}`);
+		} else {
+			// This was a top-level post. Invalidate the main feed.
+			queryClient.invalidateQueries({ queryKey: ["posts"] });
+			// Navigate to the home page.
+			navigate("/");
+		}
 
 			queryClient.invalidateQueries({ queryKey: ["post", post.postUuid] });
 
-			document.getElementById(`delete_modal_${post.postUuid}`).close();
+			const deleteModal = document.getElementById(
+				`delete_modal_${post.postUuid}`
+			);
+			if (deleteModal) {
+				deleteModal.close();
+			}
 		},
 		onError: (error) => {
 			console.error(error);

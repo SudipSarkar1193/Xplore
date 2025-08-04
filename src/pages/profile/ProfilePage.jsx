@@ -1,21 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useParams } from "react-router-dom";
 import Posts from "../../components/common/Post/Posts";
 import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkeleton";
 import EditProfileModal from "./EditProfileModal";
 import { FaArrowLeft } from "react-icons/fa6";
-import { FaTimesCircle } from "react-icons/fa";
 import { IoCalendarOutline } from "react-icons/io5";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { formatMemberSinceDate } from "../../utils/memberSinceDate";
 import useFollow from "../../custom_hooks/useFollow.js";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { backendServer } from "../../BackendServer.js";
 import { useAuthContext } from "../../context/AuthContext.jsx";
-import UserListItem from '../../components/common/UserListItem'; 
-
-import {FollowersModal} from "../../components/common/FollowersModal.jsx";
-
+import { FollowersModal } from "../../components/common/FollowersModal.jsx";
 
 const ProfilePage = () => {
 	const [feedType, setFeedType] = useState("posts");
@@ -34,86 +30,79 @@ const ProfilePage = () => {
 	} = useQuery({
 		queryKey: ["userProfile", username],
 		queryFn: async () => {
-			try {
-				const res = await fetch(
-					`${backendServer}/api/users/profile/${username}`,
-					{
-						headers: { Authorization: `Bearer ${authToken}` },
-					}
-				);
-				const data = await res.json();
-				if (!res.ok) throw new Error(data.message || "User not found");
-
-				console.log("Fetched user data:", data);
-				return data;
-			} catch (error) {
-				throw new Error(error.message);
-			}
+			const res = await fetch(`${backendServer}/api/users/profile/${username}`, {
+				headers: { Authorization: `Bearer ${authToken}` },
+			});
+			const data = await res.json();
+			if (!res.ok) throw new Error(data.message || "User not found");
+			return data;
 		},
 		enabled: !!authToken,
 	});
 
-	// Query to fetch followers
-	const { data: followers, isLoading: followersLoading } = useQuery({
+	// Query to fetch followers using useInfiniteQuery 
+	const {
+		data: followersData,
+		fetchNextPage: fetchFollowers,
+		hasNextPage: hasNextFollowers,
+		isFetchingNextPage: isFetchingFollowers,
+	} = useInfiniteQuery({
 		queryKey: ["userFollowers", user?.uuid],
-		queryFn: async () => {
-			try {
-				const res = await fetch(
-					`${backendServer}/api/users/${user.uuid}/followers`,
-					{
-						headers: { Authorization: `Bearer ${authToken}` },
-					}
-				);
-				const data = await res.json();
-				if (!res.ok)
-					throw new Error(data.message || "Failed to fetch followers");
-				console.log("Fetched followers:", data);
-				return data;
-			} catch (error) {
-				throw new Error(error.message);
-			}
+		queryFn: async ({ pageParam = 0 }) => {
+			const res = await fetch(
+				`${backendServer}/api/users/${user.uuid}/followers?page=${pageParam}&size=5`,
+				{
+					headers: { Authorization: `Bearer ${authToken}` },
+				}
+			);
+			const data = await res.json();
+			if (!res.ok) throw new Error(data.message || "Failed to fetch followers");
+			return data;
 		},
-		enabled: !!user?.uuid && !!authToken && showFollowersModal,
+		getNextPageParam: (lastPage, allPages) => lastPage.isLast ? undefined : allPages.length,
+		initialPageParam: 0,
+		enabled: !!user?.uuid && showFollowersModal,
 	});
 
-	// Query to fetch following
-	const { data: following, isLoading: followingLoading } = useQuery({
+	// Query to fetch following using useInfiniteQuery 
+	const {
+		data: followingData,
+		fetchNextPage: fetchFollowing,
+		hasNextPage: hasNextFollowing,
+		isFetchingNextPage: isFetchingFollowing,
+	} = useInfiniteQuery({
 		queryKey: ["userFollowing", user?.uuid],
-		queryFn: async () => {
-			try {
-				const res = await fetch(
-					`${backendServer}/api/users/${user.uuid}/following`,
-					{
-						headers: { Authorization: `Bearer ${authToken}` },
-					}
-				);
-				const data = await res.json();
-				if (!res.ok)
-					throw new Error(data.message || "Failed to fetch following");
-
-				console.log("Fetched following:", data);
-				return data;
-			} catch (error) {
-				throw new Error(error.message);
-			}
+		queryFn: async ({ pageParam = 0 }) => {
+			const res = await fetch(
+				`${backendServer}/api/users/${user.uuid}/following?page=${pageParam}&size=5`,
+				{
+					headers: { Authorization: `Bearer ${authToken}` },
+				}
+			);
+			const data = await res.json();
+			if (!res.ok) throw new Error(data.message || "Failed to fetch following");
+			return data;
 		},
-		enabled: !!user?.uuid && !!authToken && showFollowingModal,
+		getNextPageParam: (lastPage, allPages) => lastPage.last ? undefined : allPages.length,
+		initialPageParam: 0,
+		enabled: !!user?.uuid && showFollowingModal,
 	});
 
 	const isMyProfile = authUser?.username === username;
 	const amIFollowing = user?.currentUserFollowing || false;
-	console.log("user:", user);
-
-	console.log("amIFollowing:", amIFollowing);
 
 	useEffect(() => {
 		refetch();
 	}, [username, refetch]);
 
+	const followers = followersData?.pages.flatMap(page => page.content) || [];
+	const following = followingData?.pages.flatMap(page => page.content) || [];
+
 	return (
 		<>
 			<div className="flex-[4_4_0] border-r border-gray-700 min-h-screen bg-gray-950">
-				{(isLoading || isRefetching) && <ProfileHeaderSkeleton />}
+				{/* ... (rest of the ProfileHeaderSkeleton, user not found, and user profile info JSX remains the same) ... */}
+                {(isLoading || isRefetching) && <ProfileHeaderSkeleton />}
 				{!isLoading && !isRefetching && !user && (
 					<div className="text-center mt-8 p-8">
 						<p className="text-xl text-gray-400 mb-2">User not found</p>
@@ -273,14 +262,18 @@ const ProfilePage = () => {
 				onClose={() => setShowFollowersModal(false)}
 				users={followers}
 				title="Followers"
-				isLoading={followersLoading}
+				fetchNextPage={fetchFollowers}
+				hasNextPage={hasNextFollowers}
+				isFetchingNextPage={isFetchingFollowers}
 			/>
 			<FollowersModal
 				isOpen={showFollowingModal}
 				onClose={() => setShowFollowingModal(false)}
 				users={following}
 				title="Following"
-				isLoading={followingLoading}
+				fetchNextPage={fetchFollowing}
+				hasNextPage={hasNextFollowing}
+				isFetchingNextPage={isFetchingFollowing}
 			/>
 		</>
 	);

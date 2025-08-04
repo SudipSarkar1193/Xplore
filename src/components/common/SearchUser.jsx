@@ -1,131 +1,124 @@
-import React, { useEffect, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
-import RightPanel from "./RightPanel";
+import React, { useEffect, useState, useRef } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { FaSearch } from "react-icons/fa";
-import { useAuthContext } from "../../context/AuthContext.jsx"; 
-import useFollow from "../../custom_hooks/useFollow";
+import { useAuthContext } from "../../context/AuthContext.jsx";
 import { backendServer } from "../../BackendServer";
 import LoadingSpinner from "./LoadingSpinner";
+import RightPanel from "./RightPanel";
+import UserListItem from "./UserListItem"; // Import the UserListItem component
 
-export const SearchUser = ({ show = false, limit = 15 }) => {
+export const SearchUser = ({ show = false }) => {
 	const [search, setSearch] = useState("");
-	const queryClient = useQueryClient();
-	const [loadingUserId, setLoadingUserId] = useState(null);
-
 	const { authToken } = useAuthContext();
-	const { data: users, isLoading } = useQuery({
-		queryKey: ["users"],
-		queryFn: async () => {
-			const res = await fetch(`${backendServer}/api/users/all`, {
-				method: "GET",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${authToken}`,
-				},
-				credentials: "include",
-				
-			});
+	const loadMoreRef = useRef(null);
+	const scrollContainerRef = useRef(null);
 
-			
-			
+	const {
+		data,
+		isLoading,
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
+	} = useInfiniteQuery({
+		queryKey: ["allUsers"],
+		queryFn: async ({ pageParam = 0 }) => {
+			const res = await fetch(
+				`${backendServer}/api/users/all?page=${pageParam}&size=15`,
+				{
+					method: "GET",
+					headers: {
+						"Content-Type": "application/json",
+						Authorization: `Bearer ${authToken}`,
+					},
+				}
+			);
 			if (!res.ok) {
-				return null;
+				throw new Error("Failed to fetch users");
 			}
-
-			const jsonRes = await res.json();
-			return jsonRes;
+			return res.json();
 		},
-		retry: false,
+		getNextPageParam: (lastPage, allPages) => {
+			return lastPage.isLast ? undefined : allPages.length;
+		},
+		initialPageParam: 0,
+		enabled: !!authToken,
 	});
 
-	const { followUnfollow, isPending } = useFollow();
+	useEffect(() => {
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+					fetchNextPage();
+				}
+			},
+			{
+				root: scrollContainerRef.current, // Observe inside the scrollable div
+				threshold: 1.0,
+			}
+		);
 
-	const { data: authUser } = useQuery({ queryKey: ["userAuth"] });
-
-	const handleFollow = (e, id) => {
-		e.preventDefault();
-
-		setLoadingUserId(String(id)); // Ensure id is set as a string
-
-		try {
-			followUnfollow(id, authUser?._id);
-		} catch (error) {
-			console.error("Error during follow/unfollow:", error);
+		if (loadMoreRef.current) {
+			observer.observe(loadMoreRef.current);
 		}
-	};
+
+		return () => {
+			if (loadMoreRef.current) {
+				observer.unobserve(loadMoreRef.current);
+			}
+		};
+	}, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+	const allUsers = data?.pages.flatMap((page) => page.content) || [];
+
+	const filteredUsers = search
+		? allUsers.filter(
+				(user) =>
+					user && // ADDED THIS CHECK
+					(user.username.toLowerCase().includes(search.toLowerCase()) ||
+						(user.fullName &&
+							user.fullName.toLowerCase().includes(search.toLowerCase())))
+		  )
+		: [];
 
 	return (
-		<div className={`${show ? "block" : "hidden"} lg:block  h-screen`}>
-			<div className={` flex items-center justify-center `}>
-				<div className={`block lg:block bg-transparent p-4 rounded-md  `}>
+		<div className={`${show ? "block" : "hidden"} lg:block h-screen`}>
+			<div className="flex items-center justify-center">
+				<div className="block lg:block bg-transparent p-4 rounded-md">
 					<div className="flex flex-col gap-4">
-						<label className="input input-bordered border-blue-500 rounded-lg flex items-center gap-2 ">
+						<label className="input input-bordered border-blue-500 rounded-lg flex items-center gap-2">
 							<FaSearch />
 							<input
 								type="text"
-								placeholder="Search"
+								placeholder="Search for users"
 								onChange={(e) => setSearch(e.target.value)}
 							/>
 						</label>
 
-						<p className="font-bold mb-2">Who to follow...</p>
+						<p className="font-bold mb-2">
+							{search ? "Search Results" : "Who to follow..."}
+						</p>
 
-						{!search && <RightPanel con={true} />}
+						<div
+							ref={scrollContainerRef}
+							className="max-h-[70vh] overflow-y-auto"
+						>
+							{!search && <RightPanel con={true} />}
 
-						{search &&
-							!isLoading &&
-							users
-								?.filter(
-									(user) =>
-										user.username
-											.toLowerCase()
-											.includes(search.toLowerCase()) ||
-										user.fullName.toLowerCase().includes(search.toLowerCase())
-								)
-								?.map((user) => {
-									const isFollowing = authUser?.following.includes(user?._id);
+							{search && isLoading && <LoadingSpinner />}
 
-									return (
-										<div
-											className="flex items-center justify-between gap-4"
-											key={user._id}
-										>
-											<Link to={`/profile/${user?.username}`}>
-												<div className="flex gap-2 items-center">
-													<div className="avatar">
-														<div className="w-8 rounded-full">
-															<img src={user.profileImg} alt={user.username} />
-														</div>
-														{user.isOnline && (
-															<div className="w-3 h-3 bg-green-600 rounded-full ring-2 ring-green-400 absolute bottom-0 right-0"></div>
-														)}
-													</div>
-													<div className="flex flex-col">
-														<span className="font-semibold tracking-tight truncate w-28">
-															{user.fullName}
-														</span>
-														<span className="text-sm text-slate-500">
-															@
-															{user.username.length < limit - 3
-																? user.username
-																: user.username.slice(0, limit - 3) + "..."}
-														</span>
-													</div>
-												</div>
-											</Link>
-											<div>
-												<button
-													className="btn btn-outline rounded-full btn-sm"
-													onClick={(e) => handleFollow(e, user._id)}
-												>
-													{isPending && <LoadingSpinner size="sm" />}
-													{!isPending && (isFollowing ? "Unfollow" : "Follow")}
-												</button>
-											</div>
-										</div>
-									);
-								})}
+							{search &&
+								filteredUsers.map((user) => (
+									<UserListItem key={user.uuid} user={user} />
+								))}
+
+							{search && hasNextPage && <div ref={loadMoreRef} className="h-1" />}
+
+							{search && isFetchingNextPage && (
+								<div className="flex justify-center p-2">
+									<LoadingSpinner size="sm" />
+								</div>
+							)}
+						</div>
 					</div>
 				</div>
 			</div>

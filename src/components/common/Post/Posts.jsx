@@ -1,24 +1,18 @@
 import Post from "./Post.jsx";
 import PostSkeleton from "../../skeletons/PostSkeleton.jsx";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { backendServer } from "../../../BackendServer.js";
-import { useAuthContext } from "../../../context/AuthContext.jsx"; 
+import { useAuthContext } from "../../../context/AuthContext.jsx";
 
 const Posts = ({ feedType, userUuid }) => {
-	console.log("Posts component rendered with feedType:", feedType, "and userUuid:", userUuid);
-	const { authToken } = useAuthContext(); // Get token from context
+	const { authToken } = useAuthContext();
 
 	const getPostEndpoint = () => {
 		switch (feedType) {
 			case "forYou":
-			case "following": // Using the same endpoint for now
+			case "following":
 				return `${backendServer}/api/posts/feed`;
-
-			// NOTE: The backend endpoints for bookmarks, user posts, and likes are not yet available.
-
-			case "bookmarks":
-				return `${backendServer}/api/posts/bookmarks`;
 			case "posts":
 				return `${backendServer}/api/posts/user/${userUuid}`;
 			case "likes":
@@ -30,35 +24,43 @@ const Posts = ({ feedType, userUuid }) => {
 
 	const POST_ENDPOINT = getPostEndpoint();
 
-	const { data, isLoading, refetch, isRefetching } = useQuery({
+	const {
+		data,
+		isLoading,
+		refetch,
+		isRefetching,
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
+	} = useInfiniteQuery({
 		queryKey: ["posts", feedType, userUuid],
-		queryFn: async () => {
+		queryFn: async ({ pageParam = 0 }) => {
 			try {
-				const res = await fetch(POST_ENDPOINT, {
-					method: "GET",
+				const res = await fetch(`${POST_ENDPOINT}?page=${pageParam}`, {
 					headers: {
-						"Content-Type": "application/json",
-						Authorization: `Bearer ${authToken}`, // Add JWT
+						Authorization: `Bearer ${authToken}`,
 					},
 				});
-				const jsonRes = await res.json();
+				const data = await res.json();
 				if (!res.ok) {
-					throw new Error(jsonRes.message || "Failed to fetch posts");
+					throw new Error(data.message || "Failed to fetch posts");
 				}
-				// The backend now returns a paginated response, so we get the 'content' array
-				return jsonRes.content;
+				return data;
 			} catch (error) {
-				throw new Error(error);
+				throw new Error(error.message);
 			}
 		},
+		getNextPageParam: (lastPage, allPages) => {
+			return lastPage.isLast ? undefined : allPages.length;
+		},
+		initialPageParam: 0,
 	});
 
 	useEffect(() => {
 		refetch();
 	}, [feedType, refetch, userUuid]);
 
-	const posts = Array.isArray(data) ? data : [];
-	console.log("Fetched posts:", posts);
+	const posts = data?.pages.flatMap((page) => page.content) || [];
 
 	return (
 		<div className="">
@@ -69,10 +71,10 @@ const Posts = ({ feedType, userUuid }) => {
 					<PostSkeleton />
 				</div>
 			)}
-			{!isLoading && posts?.length === 0 && (
+			{!isLoading && !isRefetching && posts.length === 0 && (
 				<p className="text-center my-4">No posts in this tab. Switch 👻</p>
 			)}
-			{!isLoading && posts && (
+			{!isLoading && !isRefetching && posts && (
 				<div>
 					{posts.map((post) => (
 						<Post key={post.postUuid} post={post} feedType={feedType} />

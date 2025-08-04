@@ -1,5 +1,3 @@
-// src/components/common/RightPanel.jsx
-
 import { Link } from "react-router-dom";
 import RightPanelSkeleton from "../skeletons/RightPanelSkeleton.jsx";
 import { useQuery } from "@tanstack/react-query";
@@ -47,7 +45,7 @@ const RightPanel = () => {
 		<div className="hidden lg:block my-4 mx-4">
 			<div className="bg-gray-800 p-4 rounded-md sticky top-2">
 				<div className="flex flex-col gap-4 mt-2">
-					{suggestedUsers?.map((user) => (
+					{suggestedUsers?.content.map((user) => (
 						<UserListItem key={user.uuid} user={user} />
 					))}
 				</div>

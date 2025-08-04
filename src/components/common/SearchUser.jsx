@@ -20,7 +20,7 @@ export const SearchUser = ({ show = false }) => {
 			queryKey: ["allUsers"],
 			queryFn: async ({ pageParam = 0 }) => {
 				const res = await fetch(
-					`${backendServer}/api/users/all?page=${pageParam}&size=2`,
+					`${backendServer}/api/users/all?page=${pageParam}&size=10`,
 					{
 						method: "GET",
 						headers: {

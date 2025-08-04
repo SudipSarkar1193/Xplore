@@ -24,12 +24,10 @@ const RightPanel = () => {
 				const data = await res.json();
 				if (!res.ok)
 					throw new Error(data.message || "Failed to fetch suggestions");
-				console.log("Fetched suggested users:", data);
 				return data;
-				// console.log(`Fetching suggestions from ${backendServer}/api/users/suggestions`);
 			} catch (error) {
 				console.error(`Error at ${backendServer}/api/users/suggestions`, error);
-				return []; // Return empty array on error
+				return []; 
 			}
 		},
 		enabled: !!authToken,

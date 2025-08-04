@@ -51,7 +51,7 @@ const Posts = ({ feedType, userUuid }) => {
 				if (!res.ok) {
 					throw new Error(data.message || "Failed to fetch posts");
 				}
-				console.log("Fetched posts:", data);
+				console.log("Fetched posts: **************************", data);
 				// if (data.isLast) {
 				// 	return { ...data, isLast: true };
 				// }
@@ -61,8 +61,8 @@ const Posts = ({ feedType, userUuid }) => {
 			}
 		},
 		getNextPageParam: (lastPage, allPages) => {
-			console.log("lastPage:", lastPage);
-			console.log("allPages:", allPages);
+			//console.log("lastPage:", lastPage);
+			//console.log("allPages:", allPages);
 			return lastPage.last  ? undefined : allPages.length;
 		},
 		initialPageParam: 0,

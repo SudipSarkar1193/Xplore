@@ -1,12 +1,14 @@
 import Post from "./Post.jsx";
 import PostSkeleton from "../../skeletons/PostSkeleton.jsx";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { backendServer } from "../../../BackendServer.js";
 import { useAuthContext } from "../../../context/AuthContext.jsx";
+import LoadingSpinner from "../LoadingSpinner.jsx";
 
 const Posts = ({ feedType, userUuid }) => {
 	const { authToken } = useAuthContext();
+	const loadMoreRef = useRef(null);
 
 	const getPostEndpoint = () => {
 		switch (feedType) {
@@ -57,14 +59,36 @@ const Posts = ({ feedType, userUuid }) => {
 	});
 
 	useEffect(() => {
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+					fetchNextPage();
+				}
+			},
+			{ threshold: 1.0 }
+		);
+
+		if (loadMoreRef.current) {
+			observer.observe(loadMoreRef.current);
+		}
+
+		return () => {
+			if (loadMoreRef.current) {
+				observer.unobserve(loadMoreRef.current);
+			}
+		};
+	}, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+
+	useEffect(() => {
 		refetch();
 	}, [feedType, refetch, userUuid]);
 
 	const posts = data?.pages.flatMap((page) => page.content) || [];
 
 	return (
-		<div className="">
-			{(isLoading || isRefetching) && (
+		<div>
+			{(isLoading || isRefetching) && !isFetchingNextPage && (
 				<div className="flex flex-col justify-center">
 					<PostSkeleton />
 					<PostSkeleton />
@@ -74,12 +98,17 @@ const Posts = ({ feedType, userUuid }) => {
 			{!isLoading && !isRefetching && posts.length === 0 && (
 				<p className="text-center my-4">No posts in this tab. Switch 👻</p>
 			)}
-			{!isLoading && !isRefetching && posts && (
+			{posts && (
 				<div>
 					{posts.map((post) => (
 						<Post key={post.postUuid} post={post} feedType={feedType} />
 					))}
 				</div>
+			)}
+			<div ref={loadMoreRef} className="h-1"></div>
+			{isFetchingNextPage && <LoadingSpinner />}
+			{!hasNextPage && !isLoading && !isRefetching && posts.length > 0 && (
+				<p className="text-center my-4">You've reached the end!</p>
 			)}
 		</div>
 	);

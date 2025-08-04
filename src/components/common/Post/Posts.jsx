@@ -63,7 +63,7 @@ const Posts = ({ feedType, userUuid }) => {
 		getNextPageParam: (lastPage, allPages) => {
 			console.log("lastPage:", lastPage);
 			console.log("allPages:", allPages);
-			return lastPage.isLast ? undefined : allPages.length;
+			return lastPage.last  ? undefined : allPages.length;
 		},
 		initialPageParam: 0,
 	});
@@ -76,7 +76,7 @@ const Posts = ({ feedType, userUuid }) => {
 					fetchNextPage();
 				}
 			},
-			{ threshold: 1.0 }
+			{ threshold: 0.1 }
 		);
 
 		if (loadMoreRef.current) {
@@ -117,7 +117,7 @@ const Posts = ({ feedType, userUuid }) => {
 					))}
 				</div>
 			)}
-			<div ref={loadMoreRef} className="h-1 w-full bg-red-600"></div>
+			<div ref={loadMoreRef} className="h-1 w-full "></div>
 			{isFetchingNextPage && <LoadingSpinner />}
 			{!hasNextPage && !isLoading && !isRefetching && posts.length > 0 && (
 				<p className="text-center my-4">You've reached the end!</p>

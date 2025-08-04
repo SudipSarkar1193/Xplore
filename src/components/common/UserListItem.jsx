@@ -8,8 +8,8 @@ const UserListItem = ({ user }) => {
 
 	// The user object passed as a prop contains the follow status.
 	const isFollowing = user.currentUserFollowing;
-	console.log("UserListItem", user);
-	console.log("user.currentUserFollowing", user.currentUserFollowing);
+	// console.log("UserListItem", user);
+	// console.log("user.currentUserFollowing", user.currentUserFollowing);
 
 	return (
 		<div className="p-4 hover:bg-gray-800 transition-colors flex items-center gap-3">

@@ -37,22 +37,32 @@ const Posts = ({ feedType, userUuid }) => {
 	} = useInfiniteQuery({
 		queryKey: ["posts", feedType, userUuid],
 		queryFn: async ({ pageParam = 0 }) => {
+			const pageSize = 5;
 			try {
-				const res = await fetch(`${POST_ENDPOINT}?page=${pageParam}`, {
-					headers: {
-						Authorization: `Bearer ${authToken}`,
-					},
-				});
+				const res = await fetch(
+					`${POST_ENDPOINT}?page=${pageParam}&size=${pageSize}`,
+					{
+						headers: {
+							Authorization: `Bearer ${authToken}`,
+						},
+					}
+				);
 				const data = await res.json();
 				if (!res.ok) {
 					throw new Error(data.message || "Failed to fetch posts");
 				}
+				console.log("Fetched posts:", data);
+				// if (data.isLast) {
+				// 	return { ...data, isLast: true };
+				// }
 				return data;
 			} catch (error) {
 				throw new Error(error.message);
 			}
 		},
 		getNextPageParam: (lastPage, allPages) => {
+			console.log("lastPage:", lastPage);
+			console.log("allPages:", allPages);
 			return lastPage.isLast ? undefined : allPages.length;
 		},
 		initialPageParam: 0,
@@ -61,6 +71,7 @@ const Posts = ({ feedType, userUuid }) => {
 	useEffect(() => {
 		const observer = new IntersectionObserver(
 			(entries) => {
+				console.log("Observer triggered , entries", entries);
 				if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
 					fetchNextPage();
 				}
@@ -72,13 +83,14 @@ const Posts = ({ feedType, userUuid }) => {
 			observer.observe(loadMoreRef.current);
 		}
 
+		console.log("Fetched posts (inside useEffect):", data);
+
 		return () => {
 			if (loadMoreRef.current) {
 				observer.unobserve(loadMoreRef.current);
 			}
 		};
 	}, [hasNextPage, isFetchingNextPage, fetchNextPage]);
-
 
 	useEffect(() => {
 		refetch();
@@ -105,7 +117,7 @@ const Posts = ({ feedType, userUuid }) => {
 					))}
 				</div>
 			)}
-			<div ref={loadMoreRef} className="h-1"></div>
+			<div ref={loadMoreRef} className="h-1 w-full bg-red-600"></div>
 			{isFetchingNextPage && <LoadingSpinner />}
 			{!hasNextPage && !isLoading && !isRefetching && posts.length > 0 && (
 				<p className="text-center my-4">You've reached the end!</p>

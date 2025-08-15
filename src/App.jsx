@@ -6,6 +6,7 @@ import { BackgroundPage } from "./components/BackgroundPage/BackgroundPage";
 import LoadingSpinner from "./components/common/LoadingSpinner";
 import { SearchUser } from "./components/common/SearchUser";
 import { useAuthContext } from "./context/AuthContext";
+import OtpVerificationPage from "./pages/auth/OtpVerificationPage";
 
 const ErrorPage = lazy(() => import("./pages/error/ErrorPage"));
 const HomePage = lazy(() => import("./pages/home/HomePage"));
@@ -61,10 +62,7 @@ const App = () => {
 						<Routes>
 							<Route path="/login" element={<LoginPage />} />
 							<Route path="/signup" element={<RegisterPage />} />
-							{/* <Route
-								path="/users/:id/verify/:token"
-								element={<EmailVerifyPage />}
-							/> */}
+							<Route path="/verify-otp" element={<OtpVerificationPage />} />
 							<Route path="*" element={<Navigate to="/login" />} />
 						</Routes>
 					</>

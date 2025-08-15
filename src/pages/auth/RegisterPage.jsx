@@ -1,7 +1,5 @@
-// src/pages/auth/RegisterPage.jsx
-
 import { useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import XSvg from "../../../src/components/svgs/X.jsx";
@@ -11,45 +9,45 @@ import {
 	MdPassword,
 	MdDriveFileRenameOutline,
 } from "react-icons/md";
-import { FaUser } from "react-icons/fa";
 
 const RegisterPage = () => {
-	const [isRegistered, setIsRegistered] = useState(false);
 	const [formData, setFormData] = useState({
 		email: "",
-		username: "",
 		password: "",
-		fullName: "",
+		firstName: "",
+		lastName: "",
 	});
+
+	const navigate = useNavigate();
 
 	const {
 		mutate: signup,
 		isError,
 		isPending,
 	} = useMutation({
-		mutationFn: async ({ email, username, password, fullName }) => {
+		mutationFn: async ({ email, password, firstName, lastName }) => {
 			try {
 				const res = await fetch(`${backendServer}/api/auth/register`, {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
 					},
-					body: JSON.stringify({ username, email, password, fullName }),
+					body: JSON.stringify({ email, password, firstName, lastName }),
 				});
 
 				const resData = await res.json();
 
 				if (!res.ok)
 					throw new Error(resData.message || "Failed to create account");
-
+				console.log("Registration successful:", resData);
 				return resData;
 			} catch (error) {
 				throw error;
 			}
 		},
-		onSuccess: (resData) => {
-			toast.success("Account created successfully. Please log in.");
-			setIsRegistered(true);
+		onSuccess: () => {
+			toast.success("OTP sent to your email.");
+			navigate("/verify-otp", { state: { email: formData.email } });
 		},
 		onError: (error) => {
 			console.error(error);
@@ -57,28 +55,19 @@ const RegisterPage = () => {
 		},
 	});
 
-	if (isRegistered) {
-		return <Navigate to="/login" />;
-	}
-
 	const handleSubmit = (e) => {
 		e.preventDefault();
-
 		if (isPending) return;
 
-		const { email, username, password, fullName } = formData;
+		const { email, password, firstName, lastName } = formData;
 
-		if (!email || !username || !password || !fullName) {
+		if (!email || !password || !firstName || !lastName) {
 			toast.error("Please fill in all fields");
 			return;
 		}
 
 		if (password.length < 6) {
 			toast.error("Password must be at least 6 characters long");
-			return;
-		}
-		if (username.length < 3) {
-			toast.error("Username must be at least 3 characters long");
 			return;
 		}
 		if (!email.includes("@")) {
@@ -96,9 +85,9 @@ const RegisterPage = () => {
 	return (
 		<div className="max-w-screen-xl mx-auto flex h-svh px-10 overflow-x-hidden overflow-y-hidden">
 			<div className="flex-1 hidden lg:flex items-center justify-center ">
-				<XSvg className=" lg:w-2/3  fill-white svg-container hover:animate-bounce active:animate-bounce container" />
+				<XSvg className="lg:w-2/3 fill-white svg-container hover:animate-bounce active:animate-bounce container" />
 			</div>
-			<div className="flex-1 flex flex-col justify-center items-center container ">
+			<div className="flex-1 flex flex-col justify-center items-center container">
 				<form
 					className="lg:w-2/3 mx-auto md:mx-20 flex gap-4 flex-col"
 					onSubmit={handleSubmit}
@@ -119,16 +108,17 @@ const RegisterPage = () => {
 							value={formData.email}
 						/>
 					</label>
+
 					<div className="flex gap-4 flex-wrap">
 						<label className="input input-bordered rounded flex items-center gap-2 flex-1">
-							<FaUser />
+							<MdDriveFileRenameOutline />
 							<input
 								type="text"
 								className="grow"
-								placeholder="Username"
-								name="username"
+								placeholder="First Name"
+								name="firstName"
 								onChange={handleInputChange}
-								value={formData.username}
+								value={formData.firstName}
 							/>
 						</label>
 						<label className="input input-bordered rounded flex items-center gap-2 flex-1">
@@ -136,13 +126,14 @@ const RegisterPage = () => {
 							<input
 								type="text"
 								className="grow"
-								placeholder="Full Name"
-								name="fullName"
+								placeholder="Last Name"
+								name="lastName"
 								onChange={handleInputChange}
-								value={formData.fullName}
+								value={formData.lastName}
 							/>
 						</label>
 					</div>
+
 					<label className="input input-bordered rounded flex items-center gap-2">
 						<MdPassword />
 						<input
@@ -154,15 +145,18 @@ const RegisterPage = () => {
 							value={formData.password}
 						/>
 					</label>
+
 					<p className="text-white text-md text-pretty text-center">
 						You can add your Profile Picture and Cover Image later after you
-						sign in😀
+						sign in 😀
 					</p>
+
 					<button className="btn rounded-full font-bold btn-outline w-full active:bg-white active:text-black">
 						{isPending ? "Signing up..." : "Sign up"}
 					</button>
 					{isError && <p className="text-red-500">Something went wrong</p>}
 				</form>
+
 				<div className="flex flex-col lg:w-2/3 gap-2 mt-4">
 					<p className="text-white text-lg">Already have an account?</p>
 					<Link to="/login">

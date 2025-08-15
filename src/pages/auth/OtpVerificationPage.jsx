@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import {
 	LuMail,
@@ -8,6 +9,7 @@ import {
 	LuRefreshCw,
 } from "react-icons/lu";
 import { useLocation, useNavigate } from "react-router-dom";
+import { backendServer } from "../../BackendServer";
 
 const LoadingSpinner = () => (
 	<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -15,7 +17,6 @@ const LoadingSpinner = () => (
 
 const Timer = React.forwardRef(({ onTimerEnd }, ref) => {
 	const [time, setTime] = useState(300); // 5 minutes
-    const navigate = useNavigate();
 
 	React.useEffect(() => {
 		const interval = setInterval(() => {
@@ -55,45 +56,70 @@ const LoaderWithText = ({ text }) => (
 const OtpVerificationPage = () => {
 	const timerRef = useRef();
 	const location = useLocation();
+	const navigate = useNavigate();
 	const { email } = location.state || {};
 
 	const [otp, setOtp] = useState(new Array(6).fill(""));
-	const [isResending, setIsResending] = useState(false);
+	const [isExpired, setIsExpired] = useState(false); // (3) Track timer expiry
 	const inputRefs = useRef([]);
 
 	const restartTheTimer = () => {
 		if (timerRef.current) {
 			timerRef.current.restartTimer();
 		}
+		setIsExpired(false); // re-enable inputs
 	};
 
 	const handleTimerEnd = () => {
 		toast.error("OOPS 😓 Time out - Please try registering again");
+        navigate("/signup");
+		setIsExpired(true); // (3) Disable inputs after timeout
 	};
 
-	const { mutate: verifyOtp, isPending: isVerifying } = {
-		mutate: async () => {
-			try {
-				toast.loading(`Verifying OTP: ${otp.join("")} for ${email}`);
-			} catch (error) {
-				toast.error(error.message);
-			}
+	const { mutate: verifyOtp, isPending: isVerifying } = useMutation({
+		mutationFn: async () => {
+			const otpString = otp.join("");
+			const response = await fetch(`${backendServer}/api/auth/verify-otp`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ email, otp: otpString }),
+			});
+            const jsonRes = await response.json()
+			if (!response.ok) throw new Error(jsonRes.error);
+			return jsonRes;
 		},
-		isPending: false,
-	};
+		onSuccess: () => {
+			toast.success("Email verified successfully!");
+            navigate("/login");
+		},
+		onError: (error) => toast.error(error.message),
+	});
 
-	const { mutate: resendOtp } = {
-		mutate: () => {
-			setIsResending(true);
-			setTimeout(() => {
-				setIsResending(false);
-				toast.success("OTP resent successfully!");
-				restartTheTimer();
-			}, 1000);
+	const { mutate: resendOtp, isPending: isResending } = useMutation({
+		mutationFn: async () => {
+			const otpString = otp.join("");
+			const response = await fetch(`${backendServer}/api/auth/resend-otp`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ email, otp: otpString }),
+			});
+            console.log(response);
+            const jsonRes = await response.json();
+            console.log(jsonRes);
+			if (!response.ok) throw new Error(jsonRes.error);
+            console.log(jsonRes);
+			return jsonRes;
 		},
-	};
+		onSuccess: () => {
+			toast.success("OTP resent successfully!");
+			restartTheTimer();
+		},
+		onError: (error) => toast.error(error.message),
+	});
 
 	const handleInputChange = (index, value) => {
+		// (4) Trim and allow only digits
+		value = value.trim();
 		if (!/^\d*$/.test(value)) return;
 
 		const newOtp = [...otp];
@@ -113,8 +139,12 @@ const OtpVerificationPage = () => {
 
 	const handleVerifyOtp = (e) => {
 		e.preventDefault();
-		const otpString = otp.join("");
-		if (otpString.length === otp.length) {
+
+		const otpString = otp.map((digit) => digit.trim()).join("");
+		if (
+			otpString.length === otp.length &&
+			otp.every((digit) => digit.trim() !== "")
+		) {
 			verifyOtp();
 		} else {
 			toast.error(`Please enter a valid ${otp.length}-digit OTP`);
@@ -167,7 +197,8 @@ const OtpVerificationPage = () => {
 										onChange={(e) => handleInputChange(index, e.target.value)}
 										onKeyDown={(e) => handleKeyDown(index, e)}
 										maxLength={1}
-										className="w-12 h-14 text-center text-xl font-bold border-2 border-gray-600 rounded-xl focus:border-green-400 focus:ring-2 focus:ring-green-700 outline-none transition-all duration-200 bg-gray-900 text-white"
+										disabled={isExpired} // (3) disable after timeout
+										className="w-12 h-14 text-center text-xl font-bold border-2 border-gray-600 rounded-xl focus:border-green-400 focus:ring-2 focus:ring-green-700 outline-none transition-all duration-200 bg-gray-900 text-white disabled:opacity-50"
 										placeholder="•"
 									/>
 								))}
@@ -183,7 +214,9 @@ const OtpVerificationPage = () => {
 							{/* Verify Button */}
 							<button
 								type="submit"
-								disabled={isVerifying || otp.some((digit) => !digit)}
+								disabled={
+									isVerifying || otp.some((digit) => !digit.trim()) || isExpired
+								} // (3,4)
 								className="w-full bg-green-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-green-700 focus:ring-4 focus:ring-green-900 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-green-900/50"
 							>
 								{isVerifying ? (

@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import useUpdateUserProfile from "../../custom_hooks/useUpdateProfile";
 import { FaCamera } from "react-icons/fa";
+import { useAuthContext } from "../../context/AuthContext";
 
 const EditProfileModal = ({ authUser }) => {
 	const [formData, setFormData] = useState({
@@ -12,6 +13,7 @@ const EditProfileModal = ({ authUser }) => {
 	const fileInputRef = useRef(null);
 
 	const { updateProfile, isUpdatingProfile } = useUpdateUserProfile();
+	const { authToken } = useAuthContext();
 
 	useEffect(() => {
 		if (authUser) {
@@ -45,6 +47,8 @@ const EditProfileModal = ({ authUser }) => {
 	// Submit handler
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+		console.log("SHJSJS");
+		console.log("Submitting form with token:", authToken);
 		await updateProfile({ ...formData, profilePictureUrl: profilePic });
 		document.getElementById(`edit_profile_modal_${authUser.uuid}`).close();
 	};
@@ -104,6 +108,7 @@ const EditProfileModal = ({ authUser }) => {
 							/>
 						</div>
 						<button
+							type="submit"
 							className="btn btn-primary rounded-full btn-sm text-white"
 							disabled={isUpdatingProfile}
 						>

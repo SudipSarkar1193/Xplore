@@ -8,6 +8,7 @@ const useUpdateUserProfile = () => {
 	const { authToken } = useAuthContext();
 	console.log("useUpdateUserProfile hook initialized with authToken:", authToken);
 
+	console.log("Hook init token:", authToken);
 	const {
 		mutateAsync: updateProfile,
 		isPending: isUpdatingProfile,
@@ -15,6 +16,9 @@ const useUpdateUserProfile = () => {
 	} = useMutation({
 		mutationFn: async (formData) => {
 			try {
+
+				console.log("Sending Authorization header:", `Bearer ${authToken}`);
+
 				const res = await fetch(`${backendServer}/api/users/update`, {
 					method:"PUT",
 					headers: {

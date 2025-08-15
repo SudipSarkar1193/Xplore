@@ -6,7 +6,10 @@ import { useAuthContext } from "../context/AuthContext";
 const useUpdateUserProfile = () => {
 	const queryClient = useQueryClient();
 	const { authToken } = useAuthContext();
-	console.log("useUpdateUserProfile hook initialized with authToken:", authToken);
+	console.log(
+		"useUpdateUserProfile hook initialized with authToken:",
+		authToken
+	);
 
 	console.log("Hook init token:", authToken);
 	const {
@@ -16,16 +19,14 @@ const useUpdateUserProfile = () => {
 	} = useMutation({
 		mutationFn: async (formData) => {
 			try {
-
 				console.log("Sending Authorization header:", `Bearer ${authToken}`);
 
 				const res = await fetch(`${backendServer}/api/users/update`, {
-					method:"PUT",
+					method: "PUT",
 					headers: {
 						"Content-Type": "application/json",
-					    Authorization: `Bearer ${authToken}`,
+						Authorization: `Bearer ${authToken}`,
 					},
-					credentials: "include",
 					body: JSON.stringify(formData),
 				});
 				const data = await res.json();
@@ -40,7 +41,7 @@ const useUpdateUserProfile = () => {
 		onSuccess: () => {
 			toast.success("Profile updated successfully");
 			Promise.all([
-				queryClient.invalidateQueries({ queryKey: ["userProfile" , ] }),
+				queryClient.invalidateQueries({ queryKey: ["userProfile"] }),
 				queryClient.invalidateQueries({ queryKey: ["userAuth"] }),
 				queryClient.invalidateQueries({ queryKey: ["posts"] }),
 			]);

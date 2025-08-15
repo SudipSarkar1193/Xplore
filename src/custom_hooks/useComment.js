@@ -36,8 +36,9 @@ const useComment = () => {
 			queryClient.invalidateQueries({ queryKey: ["post"] });
 		},
 		onError: (error) => {
-            console.log("Error posting comment:", error);
-            toast.error(error.message || "Failed to post comment");
+			console.log("Error posting comment:", error);
+			toast.error(error.message || "Failed to post comment");
+			throw error; // Re-throw the error
 		},
 	});
 

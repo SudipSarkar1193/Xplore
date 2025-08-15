@@ -49,7 +49,7 @@ const EditProfileModal = ({ authUser }) => {
 		e.preventDefault();
 		console.log("SHJSJS");
 		console.log("Submitting form with token:", authToken);
-		await updateProfile({ ...formData, profilePictureUrl: profilePic });
+		await updateProfile({ ...formData, profileImageUrl: profilePic });
 		document.getElementById(`edit_profile_modal_${authUser.uuid}`).close();
 	};
 

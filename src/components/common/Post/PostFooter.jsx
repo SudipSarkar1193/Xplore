@@ -129,7 +129,7 @@ const PostFooter = ({
 					</div>
 
 					<div className="flex gap-1 items-center cursor-pointer group transition-colors duration-200">
-						<span className="text-lg text-pretty text-sky-500 hover:text-sky-300 no-underline hover:underline transition-colors duration-200">
+						<span className="text-lg text-pretty text-white hover:text-sky-300 no-underline hover:underline transition-colors duration-200">
 							{post.likeCount} likes
 						</span>
 					</div>

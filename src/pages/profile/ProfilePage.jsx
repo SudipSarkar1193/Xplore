@@ -30,9 +30,12 @@ const ProfilePage = () => {
 	} = useQuery({
 		queryKey: ["userProfile", username],
 		queryFn: async () => {
-			const res = await fetch(`${backendServer}/api/users/profile/${username}`, {
-				headers: { Authorization: `Bearer ${authToken}` },
-			});
+			const res = await fetch(
+				`${backendServer}/api/users/profile/${username}`,
+				{
+					headers: { Authorization: `Bearer ${authToken}` },
+				}
+			);
 			const data = await res.json();
 			if (!res.ok) throw new Error(data.message || "User not found");
 			return data;
@@ -40,7 +43,7 @@ const ProfilePage = () => {
 		enabled: !!authToken,
 	});
 
-	// Query to fetch followers using useInfiniteQuery 
+	// Query to fetch followers using useInfiniteQuery
 	const {
 		data: followersData,
 		fetchNextPage: fetchFollowers,
@@ -59,12 +62,13 @@ const ProfilePage = () => {
 			if (!res.ok) throw new Error(data.message || "Failed to fetch followers");
 			return data;
 		},
-		getNextPageParam: (lastPage, allPages) => lastPage.last ? undefined : allPages.length,
+		getNextPageParam: (lastPage, allPages) =>
+			lastPage.last ? undefined : allPages.length,
 		initialPageParam: 0,
 		enabled: !!user?.uuid && showFollowersModal,
 	});
 
-	// Query to fetch following using useInfiniteQuery 
+	// Query to fetch following using useInfiniteQuery
 	const {
 		data: followingData,
 		fetchNextPage: fetchFollowing,
@@ -83,7 +87,8 @@ const ProfilePage = () => {
 			if (!res.ok) throw new Error(data.message || "Failed to fetch following");
 			return data;
 		},
-		getNextPageParam: (lastPage, allPages) => lastPage.last ? undefined : allPages.length,
+		getNextPageParam: (lastPage, allPages) =>
+			lastPage.last ? undefined : allPages.length,
 		initialPageParam: 0,
 		enabled: !!user?.uuid && showFollowingModal,
 	});
@@ -95,14 +100,13 @@ const ProfilePage = () => {
 		refetch();
 	}, [username, refetch]);
 
-	const followers = followersData?.pages.flatMap(page => page.content) || [];
-	const following = followingData?.pages.flatMap(page => page.content) || [];
+	const followers = followersData?.pages.flatMap((page) => page.content) || [];
+	const following = followingData?.pages.flatMap((page) => page.content) || [];
 
 	return (
 		<>
-			<div className="flex-[4_4_0] border-r border-gray-700 min-h-screen bg-gray-950">
-				{/* ... (rest of the ProfileHeaderSkeleton, user not found, and user profile info JSX remains the same) ... */}
-                {(isLoading || isRefetching) && <ProfileHeaderSkeleton />}
+			<div className="flex-[4_4_0] overflow-x-hidden border-r border-gray-700 min-h-screen bg-gray-950">
+				{(isLoading || isRefetching) && <ProfileHeaderSkeleton />}
 				{!isLoading && !isRefetching && !user && (
 					<div className="text-center mt-8 p-8">
 						<p className="text-xl text-gray-400 mb-2">User not found</p>
@@ -251,7 +255,12 @@ const ProfilePage = () => {
 								</div>
 							</div>
 						</div>
-						<Posts feedType={feedType} userUuid={user.uuid} />
+
+						<Posts
+							feedType={feedType}
+							userUuid={user.uuid}
+							isProfilePage={true}
+						/>
 					</>
 				)}
 			</div>

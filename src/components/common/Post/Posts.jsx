@@ -6,7 +6,7 @@ import { backendServer } from "../../../BackendServer.js";
 import { useAuthContext } from "../../../context/AuthContext.jsx";
 import LoadingSpinner from "../LoadingSpinner.jsx";
 
-const Posts = ({ feedType, userUuid }) => {
+const Posts = ({ feedType, userUuid, isProfilePage = false }) => {
 	const { authToken } = useAuthContext();
 	const loadMoreRef = useRef(null);
 
@@ -51,10 +51,8 @@ const Posts = ({ feedType, userUuid }) => {
 				if (!res.ok) {
 					throw new Error(data.message || "Failed to fetch posts");
 				}
-				//console.log("Fetched posts: **************************", data);
-				// if (data.isLast) {
-				// 	return { ...data, isLast: true };
-				// }
+				console.log("Fetched posts: **************************", data);
+
 				return data;
 			} catch (error) {
 				throw new Error(error.message);
@@ -63,7 +61,7 @@ const Posts = ({ feedType, userUuid }) => {
 		getNextPageParam: (lastPage, allPages) => {
 			//console.log("lastPage:", lastPage);
 			//console.log("allPages:", allPages);
-			return lastPage.last  ? undefined : allPages.length;
+			return lastPage.last ? undefined : allPages.length;
 		},
 		initialPageParam: 0,
 	});
@@ -113,7 +111,12 @@ const Posts = ({ feedType, userUuid }) => {
 			{posts && (
 				<div>
 					{posts.map((post) => (
-						<Post key={post.postUuid} post={post} feedType={feedType} />
+						<Post
+							key={post.postUuid}
+							post={post}
+							feedType={feedType}
+							isProfilePage={isProfilePage}
+						/>
 					))}
 				</div>
 			)}

@@ -1,13 +1,18 @@
 import { Link, useNavigate } from "react-router-dom";
 import { timeAgo } from "../../../utils/timeAgo.js";
 import { useAuthContext } from "../../../context/AuthContext.jsx";
-import useLikePost from "../../../custom_hooks/useLikePost.js"; 
+import useLikePost from "../../../custom_hooks/useLikePost.js";
 import PostHeader from "./PostHeader";
 import PostBody from "./PostBody";
 import PostFooter from "./PostFooter";
 import PostModals from "./PostModals";
 
-const Post = ({ post, parentPostUuid, showInfo = false }) => {
+const Post = ({
+	post,
+	parentPostUuid,
+	showInfo = false,
+	isProfilePage = false,
+}) => {
 	const { authUser } = useAuthContext();
 	const navigate = useNavigate();
 
@@ -30,43 +35,65 @@ const Post = ({ post, parentPostUuid, showInfo = false }) => {
 	};
 
 	return (
-		<div
-			className="overflow-y-hidden no-scrollbar pr-4 cursor-pointer"
-			onClick={() => navigate(`/post/${post.postUuid}`)}
-		>
-			<div className="flex gap-2 items-start p-4 border-b border-gray-700">
-				<div className="avatar">
-					<Link
-						onClick={(e) => e.stopPropagation()}
-						to={`/profile/${postOwner?.username}`}
+		<>
+			<div className="overflow-y-auto overflow-x-auto no-scrollbar h-5"> </div>
+			<div
+				className="overflow-y-auto overflow-x-auto no-scrollbar pr-4 cursor-pointer"
+				onClick={() => navigate(`/post/${post.postUuid}`)}
+			>
+				{isProfilePage && post && post.parentPostUuid && (
+					<div
+						className="py-1 text-sm flex items-center justify-center  bg-slate-900 rounded-md cursor-pointer hover:bg-slate-800 transition-colors duration-200 italic "
+						onClick={(e) => {
+							e.stopPropagation();
+							navigate(`/post/${post.parentPostUuid}`);
+						}}
 					>
-						<div className="w-8 rounded-full">
-							<img src={postOwner?.profileImg || "/avatar-placeholder.png"} />
-						</div>
-					</Link>
+						{`Comment of the post 👉`}
+						<span className="ml-2 hover:text-blue-500 active:to-blue-500 text-wrap">
+							${post.postUuid}
+						</span>
+					</div>
+				)}
+
+				<div className="flex gap-2 items-start p-4 border-b border-gray-700">
+					<div className="avatar">
+						<Link
+							onClick={(e) => e.stopPropagation()}
+							to={`/profile/${postOwner?.username}`}
+						>
+							<div className="w-8 rounded-full">
+								<img src={postOwner?.profileImg || "/avatar-placeholder.png"} />
+							</div>
+						</Link>
+					</div>
+					<div className="flex flex-col flex-1">
+						<PostHeader
+							postOwner={postOwner}
+							formattedDate={formattedDate}
+							isMyPost={isMyPost}
+							postUuid={post.postUuid}
+						/>
+						<PostBody content={post.content} imageUrls={post.imageUrls} />
+						<PostFooter
+							post={post}
+							isLiking={isLiking}
+							isLiked={post.likedByCurrentUser}
+							likeCount={post.likeCount}
+							isBookmarked={isBookmarked}
+							handleLikePost={handleLikePost}
+							showInfo={showInfo}
+						/>
+					</div>
 				</div>
-				<div className="flex flex-col flex-1">
-					<PostHeader
-						postOwner={postOwner}
-						formattedDate={formattedDate}
-						isMyPost={isMyPost}
-						postUuid={post.postUuid}
-					/>
-					<PostBody content={post.content} imageUrls={post.imageUrls} />
-					<PostFooter
-						post={post}
-						isLiking={isLiking}
-						isLiked={post.likedByCurrentUser}
-						likeCount={post.likeCount}
-						isBookmarked={isBookmarked}
-						handleLikePost={handleLikePost}
-						showInfo={showInfo}
-					/>
-				</div>
+				{isMyPost && <PostModals post={post} parentPostUuid={parentPostUuid} />}
 			</div>
-			{isMyPost && <PostModals post={post} parentPostUuid={parentPostUuid} />}
-		</div>
+		</>
 	);
 };
 
 export default Post;
+
+// {post && post.parentPostUuid && (
+// 				<div className="w-[70%] py-[1/2] text-sm flex items-center justify-center border border-blue-600">{`Comment of the post ${post.postUuid}`}</div>
+// 			)}

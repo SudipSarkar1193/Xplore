@@ -71,6 +71,7 @@ const PostPage = () => {
 									post={comment}
 									parentPostUuid={post.postUuid}
 									showInfo={true}
+									isProfilePage={true}
 								/>
 							))
 						) : (

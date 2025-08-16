@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.51.5",
-    "canvas": "^2.11.2",
+    "canvas": "^3.1.2",
     "dotenv": "^16.4.5",
     "firebase": "^10.12.5",
     "gsap": "^3.12.5",

@@ -122,29 +122,23 @@ const PostFooter = ({
 		<div className="">
 			{showInfo && (
 				<div className="flex justify-between items-center h-10  ">
-					{post.commentCount !== 0 && (
-						<div className="flex gap-1 items-center cursor-pointer group transition-colors duration-200">
-							<span className="text-lg text-pretty text-orange-500 hover:text-orange-700 no-underline hover:underline transition-colors duration-200">
-								{post.commentCount} comments
-							</span>
-						</div>
-					)}
+					<div className="flex gap-1 items-center cursor-pointer group transition-colors duration-200">
+						<span className="text-lg text-pretty text-orange-500 hover:text-orange-700 no-underline hover:underline transition-colors duration-200">
+							{post.commentCount} comments
+						</span>
+					</div>
 
-					{post.likeCount !== 0 && (
-						<div className="flex gap-1 items-center cursor-pointer group transition-colors duration-200">
-							<span className="text-lg text-pretty text-sky-500 hover:text-sky-300 no-underline hover:underline transition-colors duration-200">
-								{post.likeCount} likes
-							</span>
-						</div>
-					)}
+					<div className="flex gap-1 items-center cursor-pointer group transition-colors duration-200">
+						<span className="text-lg text-pretty text-sky-500 hover:text-sky-300 no-underline hover:underline transition-colors duration-200">
+							{post.likeCount} likes
+						</span>
+					</div>
 
-					{post.shareCount !== 0 && (
-						<div className="flex gap-1 items-center cursor-pointer group transition-colors duration-200">
-							<span className="text-lg text-pretty text-green-500  hover:text-green-700 no-underline hover:underline transition-colors duration-200">
-								{post.shareCount} shares
-							</span>
-						</div>
-					)}
+					<div className="flex gap-1 items-center cursor-pointer group transition-colors duration-200">
+						<span className="text-lg text-pretty text-green-500  hover:text-green-700 no-underline hover:underline transition-colors duration-200">
+							{post.shareCount} shares
+						</span>
+					</div>
 				</div>
 			)}
 			<div className="flex justify-between items-center h-10">

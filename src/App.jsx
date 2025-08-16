@@ -17,7 +17,7 @@ const NotificationPage = lazy(() =>
 );
 const BookmarkPage = lazy(() => import("./pages/profile/BookmarkPage"));
 const ProfilePage = lazy(() => import("./pages/profile/ProfilePage"));
-const EmailVerifyPage = lazy(() => import("./pages/auth/EmailVerifyPage"));
+// const EmailVerifyPage = lazy(() => import("./pages/auth/EmailVerifyPage"));
 const Sidebar = lazy(() => import("./components/common/Sidebar"));
 const RightPanel = lazy(() => import("./components/common/RightPanel"));
 const PostPage = lazy(() => import("./pages/post/PostPage")); 

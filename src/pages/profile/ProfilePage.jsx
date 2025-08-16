@@ -59,7 +59,7 @@ const ProfilePage = () => {
 			if (!res.ok) throw new Error(data.message || "Failed to fetch followers");
 			return data;
 		},
-		getNextPageParam: (lastPage, allPages) => lastPage.isLast ? undefined : allPages.length,
+		getNextPageParam: (lastPage, allPages) => lastPage.last ? undefined : allPages.length,
 		initialPageParam: 0,
 		enabled: !!user?.uuid && showFollowersModal,
 	});

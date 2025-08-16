@@ -42,7 +42,7 @@ export const SearchUser = ({ show = false }) => {
 			getNextPageParam: (lastPage, allPages) => {
 				// console.log("Last page:", lastPage);
 				// console.log("All pages:", allPages);
-				return lastPage.isLast ? undefined : allPages.length;
+				return lastPage.last ? undefined : allPages.length;
 			},
 			initialPageParam: 0,
 			enabled: !!authToken,

@@ -51,7 +51,7 @@ const Posts = ({ feedType, userUuid }) => {
 				if (!res.ok) {
 					throw new Error(data.message || "Failed to fetch posts");
 				}
-				console.log("Fetched posts: **************************", data);
+				//console.log("Fetched posts: **************************", data);
 				// if (data.isLast) {
 				// 	return { ...data, isLast: true };
 				// }

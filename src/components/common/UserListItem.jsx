@@ -1,15 +1,71 @@
 import React from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import useFollow from "../../custom_hooks/useFollow";
 import LoadingSpinner from "./LoadingSpinner";
 import { Link } from "react-router-dom";
-const UserListItem = ({ user }) => {
-	// Each list item now manages its own follow mutation and loading state.
-	const { follow, isPending } = useFollow();
 
-	// The user object passed as a prop contains the follow status.
-	const isFollowing = user.currentUserFollowing;
-	// console.log("UserListItem", user);
-	// console.log("user.currentUserFollowing", user.currentUserFollowing);
+const UserListItem = ({ user }) => {
+	const { follow, isPending } = useFollow();
+	const queryClient = useQueryClient();
+
+	// Helper function to find user's current follow status in cache
+	const getCurrentFollowStatus = () => {
+		// Getting all cached queries that might contain users
+		const allQueries = [
+			...queryClient.getQueriesData({ queryKey: ["userFollowers"] }),
+			...queryClient.getQueriesData({ queryKey: ["userFollowing"] }),
+			...queryClient.getQueriesData({ queryKey: ["suggestedUsers"] }),
+			...queryClient.getQueriesData({ queryKey: ["userProfile"] }),
+		];
+
+		// Searching through all cached data to find this user
+		for (const [queryKey, data] of allQueries) {
+			if (data) {
+				const foundUser = findUserInData(data, user.uuid);
+				if (foundUser) {
+					return foundUser.currentUserFollowing;
+				}
+			}
+		}
+
+		// Fallback to prop value if not found in cache
+		return user.currentUserFollowing;
+	};
+
+	// ✅ Recursive function to find user in nested data structures
+	const findUserInData = (data, targetUuid) => {
+		if (!data) return null;
+
+		// Handling arrays
+		if (Array.isArray(data)) {
+			for (const item of data) {
+				const found = findUserInData(item, targetUuid);
+				if (found) return found;
+			}
+			return null;
+		}
+
+		// Handling objects
+		if (typeof data === "object") {
+			// Checking if this object is the user we're looking for
+			if (data.uuid === targetUuid || data.userUuid === targetUuid) {
+				return data;
+			}
+
+			// Recursively search all properties
+			for (const key in data) {
+				if (data[key] && typeof data[key] === "object") {
+					const found = findUserInData(data[key], targetUuid);
+					if (found) return found;
+				}
+			}
+		}
+
+		return null;
+	};
+
+	// ✅ Getting current follow status from cache -> this will update when cache updates
+	const isFollowing = getCurrentFollowStatus();
 
 	return (
 		<div className="p-4 hover:bg-gray-800 transition-colors flex items-center gap-3">
@@ -28,7 +84,7 @@ const UserListItem = ({ user }) => {
 			</div>
 			<div>
 				<button
-					className="btn btn-sm btn-primary rounded-full min-w-[90px]" // Added min-width for consistency
+					className="btn btn-sm btn-primary rounded-full min-w-[90px]"
 					onClick={() => follow(user.uuid)}
 					disabled={isPending}
 				>

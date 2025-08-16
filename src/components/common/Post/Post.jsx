@@ -64,6 +64,7 @@ const Post = ({ post, feedType, parentPostUuid, showInfo = false }) => {
 	});
 
 	const handleLikePost = (e) => {
+		e.preventDefault();
 		e.stopPropagation();
 		!isLiking && likePost();
 	};

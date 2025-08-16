@@ -23,67 +23,71 @@ const PostFooter = ({
 }) => {
 	const queryClient = useQueryClient();
 	const { authToken } = useAuthContext();
-	
+
+	console.log("showInfo", showInfo);
 
 	const { mutate: incrementShareCount, isPending: isIncreasingShareCount } =
-    useMutation({
-        mutationFn: async () => {
-            const res = await fetch(
-                `${backendServer}/api/posts/${post.postUuid}/increase-share-count`,
-                {
-                    method: "put",
-                    headers: { Authorization: `Bearer ${authToken}` },
-                }
-            );
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.message || "Failed to share post");
-            return data;
-        },
-        onMutate: async () => {
-            // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
-            await queryClient.cancelQueries({ queryKey: ["posts"] });
-            await queryClient.cancelQueries({ queryKey: ["post", post.postUuid] });
+		useMutation({
+			mutationFn: async () => {
+				const res = await fetch(
+					`${backendServer}/api/posts/${post.postUuid}/increase-share-count`,
+					{
+						method: "put",
+						headers: { Authorization: `Bearer ${authToken}` },
+					}
+				);
+				const data = await res.json();
+				if (!res.ok) throw new Error(data.message || "Failed to share post");
+				return data;
+			},
+			onMutate: async () => {
+				// Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+				await queryClient.cancelQueries({ queryKey: ["posts"] });
+				await queryClient.cancelQueries({ queryKey: ["post", post.postUuid] });
 
-            // Snapshot the previous value
-            const previousPost = queryClient.getQueryData(["post", post.postUuid]);
-            const previousPosts = queryClient.getQueryData(["posts"]);
+				// Snapshot the previous value
+				const previousPost = queryClient.getQueryData(["post", post.postUuid]);
+				const previousPosts = queryClient.getQueryData(["posts"]);
 
-            // Optimistically update to the new value
-            if (previousPost) {
-                queryClient.setQueryData(["post", post.postUuid], {
-                    ...previousPost,
-                    shareCount: previousPost.shareCount + 1,
-                });
-            }
+				// Optimistically update to the new value
+				if (previousPost) {
+					queryClient.setQueryData(["post", post.postUuid], {
+						...previousPost,
+						shareCount: previousPost.shareCount + 1,
+					});
+				}
 
-            if (previousPosts) {
-                const updatedPosts = previousPosts.map(p =>
-                    p.postUuid === post.postUuid
-                        ? { ...p, shareCount: p.shareCount + 1 }
-                        : p
-                );
-                queryClient.setQueryData(["posts"], updatedPosts);
-            }
+				if (previousPosts) {
+					const updatedPosts = previousPosts.map((p) =>
+						p.postUuid === post.postUuid
+							? { ...p, shareCount: p.shareCount + 1 }
+							: p
+					);
+					queryClient.setQueryData(["posts"], updatedPosts);
+				}
 
-            // Return a context object with the snapshotted value
-            return { previousPost, previousPosts };
-        },
-        // If the mutation fails, use the context returned from onMutate to roll back
-        onError: (err, newPost, context) => {
-            if (context.previousPost) {
-                queryClient.setQueryData(["post", post.postUuid], context.previousPost);
-            }
-            if (context.previousPosts) {
-                queryClient.setQueryData(["posts"], context.previousPosts);
-            }
-            console.error("Failed to increment the count share ");
-        },
-        // Always refetch after error or success to ensure data consistency
-        onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ["post", post.postUuid] });
-            queryClient.invalidateQueries({ queryKey: ["posts"] });
-        },
-    });
+				// Return a context object with the snapshotted value
+				return { previousPost, previousPosts };
+			},
+			// If the mutation fails, use the context returned from onMutate to roll back
+			onError: (err, newPost, context) => {
+				if (context.previousPost) {
+					queryClient.setQueryData(
+						["post", post.postUuid],
+						context.previousPost
+					);
+				}
+				if (context.previousPosts) {
+					queryClient.setQueryData(["posts"], context.previousPosts);
+				}
+				console.error("Failed to increment the count share ");
+			},
+			// Always refetch after error or success to ensure data consistency
+			onSettled: () => {
+				queryClient.invalidateQueries({ queryKey: ["post", post.postUuid] });
+				queryClient.invalidateQueries({ queryKey: ["posts"] });
+			},
+		});
 
 	const sharePost = async (e) => {
 		e.stopPropagation(); // Prevent triggering the post click event
@@ -117,24 +121,30 @@ const PostFooter = ({
 	return (
 		<div className="">
 			{showInfo && (
-				<div className="flex justify-between items-center h-10">
-					<div className="flex gap-1 items-center cursor-pointer group transition-colors duration-200">
-						<span className="text-lg text-pretty text-slate-200 hover:text-sky-300 no-underline hover:underline transition-colors duration-200">
-							{post.commentCount} comments
-						</span>
-					</div>
+				<div className="flex justify-between items-center h-10  ">
+					{post.commentCount !== 0 && (
+						<div className="flex gap-1 items-center cursor-pointer group transition-colors duration-200">
+							<span className="text-lg text-pretty text-orange-500 hover:text-orange-700 no-underline hover:underline transition-colors duration-200">
+								{post.commentCount} comments
+							</span>
+						</div>
+					)}
 
-					<div className="flex gap-1 items-center cursor-pointer group transition-colors duration-200">
-						<span className="text-lg text-pretty text-slate-200 hover:text-sky-300 no-underline hover:underline transition-colors duration-200">
-							{post.likeCount} likes
-						</span>
-					</div>
+					{post.likeCount !== 0 && (
+						<div className="flex gap-1 items-center cursor-pointer group transition-colors duration-200">
+							<span className="text-lg text-pretty text-sky-500 hover:text-sky-300 no-underline hover:underline transition-colors duration-200">
+								{post.likeCount} likes
+							</span>
+						</div>
+					)}
 
-					<div className="flex gap-1 items-center cursor-pointer group transition-colors duration-200">
-						<span className="text-lg text-pretty text-slate-200 hover:text-sky-300 no-underline hover:underline transition-colors duration-200">
-							{post.shareCount} shares
-						</span>
-					</div>
+					{post.shareCount !== 0 && (
+						<div className="flex gap-1 items-center cursor-pointer group transition-colors duration-200">
+							<span className="text-lg text-pretty text-green-500  hover:text-green-700 no-underline hover:underline transition-colors duration-200">
+								{post.shareCount} shares
+							</span>
+						</div>
+					)}
 				</div>
 			)}
 			<div className="flex justify-between items-center h-10">

@@ -14,6 +14,7 @@ const RegisterPage = () => {
 	const [formData, setFormData] = useState({
 		email: "",
 		password: "",
+		confirmPassword: "",
 		firstName: "",
 		lastName: "",
 	});
@@ -25,7 +26,16 @@ const RegisterPage = () => {
 		isError,
 		isPending,
 	} = useMutation({
-		mutationFn: async ({ email, password, firstName, lastName }) => {
+		mutationFn: async ({
+			email,
+			password,
+			confirmPassword,
+			firstName,
+			lastName,
+		}) => {
+			if (password !== confirmPassword) {
+				throw new Error("Passwords do not match");
+			}
 			try {
 				const res = await fetch(`${backendServer}/api/auth/register`, {
 					method: "POST",
@@ -143,6 +153,18 @@ const RegisterPage = () => {
 							name="password"
 							onChange={handleInputChange}
 							value={formData.password}
+						/>
+					</label>
+
+					<label className="input input-bordered rounded flex items-center gap-2">
+						<MdPassword />
+						<input
+							type="password"
+							className="grow"
+							placeholder="Confirm Password"
+							name="confirmPassword"
+							onChange={handleInputChange}
+							value={formData.confirmPassword}
 						/>
 					</label>
 

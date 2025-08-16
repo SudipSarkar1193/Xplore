@@ -41,56 +41,109 @@ const PostFooter = ({
 				return data;
 			},
 			onMutate: async () => {
-				// Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+				// Canceling any outgoing refetches so they don't overwrite our optimistic update
 				await queryClient.cancelQueries({ queryKey: ["posts"] });
-				await queryClient.cancelQueries({ queryKey: ["post", post.postUuid] });
+				await queryClient.cancelQueries({ queryKey: ["post"] });
 
-				// Snapshot the previous value
-				const previousPost = queryClient.getQueryData(["post", post.postUuid]);
-				const previousPosts = queryClient.getQueryData(["posts"]);
+				// Taking a snapshot of the previous values for rollback
+				const previousPostsData = queryClient.getQueriesData({
+					queryKey: ["posts"],
+				});
+				const previousPostData = queryClient.getQueriesData({
+					queryKey: ["post"],
+				});
 
-				// Optimistically update to the new value
-				if (previousPost) {
-					queryClient.setQueryData(["post", post.postUuid], {
-						...previousPost,
-						shareCount: previousPost.shareCount + 1,
+				// Helper function to update a single post's share count
+				const updatePostShareCount = (postData) => {
+					if (postData.postUuid === post.postUuid) {
+						return {
+							...postData,
+							shareCount: postData.shareCount + 1,
+						};
+					}
+					return postData;
+				};
+
+				// Helper function to recursively update posts in nested structures
+				const updatePostsRecursively = (data) => {
+					if (!data) return data;
+
+					// Handling arrays (like posts feeds, comments arrays)
+					if (Array.isArray(data)) {
+						return data.map(updatePostsRecursively);
+					}
+
+					// Handling objects
+					if (typeof data === "object") {
+						let updated = { ...data };
+						let hasChanges = false;
+
+						// if this is a post object -> update it
+						if (data.postUuid) {
+							const updatedPost = updatePostShareCount(data);
+							if (updatedPost !== data) {
+								updated = updatedPost;
+								hasChanges = true;
+							}
+						}
+
+						// Recursively check all properties that might contain posts
+						for (const key in data) {
+							if (data[key] && typeof data[key] === "object") {
+								const updatedValue = updatePostsRecursively(data[key]);
+								if (updatedValue !== data[key]) {
+									updated[key] = updatedValue;
+									hasChanges = true;
+								}
+							}
+						}
+
+						return hasChanges ? updated : data;
+					}
+
+					return data;
+				};
+
+				// Optimistically update posts queries (homepage, profile feeds, etc.)
+				previousPostsData.forEach(([queryKey, data]) => {
+					if (data) {
+						queryClient.setQueryData(queryKey, updatePostsRecursively(data));
+					}
+				});
+
+				// Optimistically update individual post queries (post details page)
+				previousPostData.forEach(([queryKey, data]) => {
+					if (data) {
+						queryClient.setQueryData(queryKey, updatePostsRecursively(data));
+					}
+				});
+
+				// Return context for rollback
+				return { previousPostsData, previousPostData };
+			},
+			onError: (err, variables, context) => {
+				// Rollback on error
+				if (context?.previousPostsData) {
+					context.previousPostsData.forEach(([queryKey, data]) => {
+						queryClient.setQueryData(queryKey, data);
 					});
 				}
-
-				if (previousPosts) {
-					const updatedPosts = previousPosts.map((p) =>
-						p.postUuid === post.postUuid
-							? { ...p, shareCount: p.shareCount + 1 }
-							: p
-					);
-					queryClient.setQueryData(["posts"], updatedPosts);
+				if (context?.previousPostData) {
+					context.previousPostData.forEach(([queryKey, data]) => {
+						queryClient.setQueryData(queryKey, data);
+					});
 				}
-
-				// Return a context object with the snapshotted value
-				return { previousPost, previousPosts };
+				console.error("Failed to increment the share count:", err.message);
+				toast.error("Failed to share post");
 			},
-			// If the mutation fails, use the context returned from onMutate to roll back
-			onError: (err, newPost, context) => {
-				if (context.previousPost) {
-					queryClient.setQueryData(
-						["post", post.postUuid],
-						context.previousPost
-					);
-				}
-				if (context.previousPosts) {
-					queryClient.setQueryData(["posts"], context.previousPosts);
-				}
-				console.error("Failed to increment the count share ");
-			},
-			// Always refetch after error or success to ensure data consistency
-			onSettled: () => {
-				queryClient.invalidateQueries({ queryKey: ["post", post.postUuid] });
-				queryClient.invalidateQueries({ queryKey: ["posts"] });
+			onSuccess: () => {
+				console.log("Share count incremented successfully!");
 			},
 		});
 
 	const sharePost = async (e) => {
-		e.stopPropagation(); // Prevent triggering the post click event
+		e.preventDefault();
+		e.stopPropagation(); 
 		try {
 			// Check if Web Share API is supported
 			if (navigator.share) {
@@ -106,13 +159,13 @@ const PostFooter = ({
 				const postUrl = `${window.location.origin}/post/${post.postUuid}`;
 				await navigator.clipboard.writeText(postUrl);
 
-				// You could show a toast notification here
+				// toasting a notification
 				toast.success("Link copied to clipboard!");
 			}
 
 			console.log("calling incrementShareCount()");
-			// Increment share count in the backend
-			incrementShareCount();
+			// Increment shareCount in the backend
+			incrementShareCount(); 
 		} catch (error) {
 			console.error("Error sharing post:", error);
 		}

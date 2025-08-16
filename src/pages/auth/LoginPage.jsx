@@ -112,12 +112,12 @@ const LoginPage = () => {
 						</button>
 					</Link>
 				</div>
-				<div className="flex flex-col lg:w-2/3 gap-2 mt-4">
+				{/* <div className="flex flex-col lg:w-2/3 gap-2 mt-4">
 					<p className="text-white text-lg text-center">Or</p>
 					<button className="btn rounded-full font-bold btn-outline w-full active:bg-white active:text-black">
 						Sign in with <FcGoogle size={27} />
 					</button>
-				</div>
+				</div> */}
 			</div>
 		</div>
 	);

@@ -47,10 +47,14 @@ const RegisterPage = () => {
 				});
 
 				const resData = await res.json();
+				// Debugging: Log the response data
+				// console.log("Registration data:", resData);
 
-				if (!res.ok)
-					throw new Error(resData.error || "Failed to create account");
-				console.log("Registration successful:", resData);
+				if (!res.ok) {
+					// console.error("Registration error:", res);
+					throw new Error(resData.message || resData.error || "Failed to create account");
+				}
+
 				return resData;
 			} catch (error) {
 				throw error;
@@ -77,8 +81,8 @@ const RegisterPage = () => {
 			return;
 		}
 
-		if (password.length < 6) {
-			toast.error("Password must be at least 6 characters long");
+		if (password.length < 8) {
+			toast.error("Password must be at least 8 characters long");
 			return;
 		}
 		if (!email.includes("@")) {

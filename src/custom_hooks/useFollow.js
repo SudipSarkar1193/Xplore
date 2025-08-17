@@ -13,7 +13,6 @@ const useFollow = () => {
 			if (!authToken) {
 				throw new Error("User is not authenticated");
 			}
-			console.log("Using authToken:", authToken);
 
 			const res = await fetch(`${backendServer}/api/users/${userUuid}/follow`, {
 				method: "POST",
@@ -30,24 +29,20 @@ const useFollow = () => {
 		onMutate: async (userUuid) => {
 			console.log("🔄 Starting optimistic update for user:", userUuid);
 
-			// Canceling any outgoing refetches so they don't overwrite our optimistic update
+			// Cancel any outgoing refetches so they don't overwrite our optimistic update
 			await queryClient.cancelQueries({ queryKey: ["userFollowers"] });
 			await queryClient.cancelQueries({ queryKey: ["userFollowing"] });
 			await queryClient.cancelQueries({ queryKey: ["suggestedUsers"] });
 			await queryClient.cancelQueries({ queryKey: ["userProfile"] });
+			await queryClient.cancelQueries({ queryKey: ["posts"] }); // Users might appear in post data
 
 			// Snapshot of ALL query data that might contain users
 			const previousData = {
-				userFollowers: queryClient.getQueriesData({
-					queryKey: ["userFollowers"],
-				}),
-				userFollowing: queryClient.getQueriesData({
-					queryKey: ["userFollowing"],
-				}),
-				suggestedUsers: queryClient.getQueriesData({
-					queryKey: ["suggestedUsers"],
-				}),
+				userFollowers: queryClient.getQueriesData({ queryKey: ["userFollowers"] }),
+				userFollowing: queryClient.getQueriesData({ queryKey: ["userFollowing"] }),
+				suggestedUsers: queryClient.getQueriesData({ queryKey: ["suggestedUsers"] }),
 				userProfile: queryClient.getQueriesData({ queryKey: ["userProfile"] }),
+				posts: queryClient.getQueriesData({ queryKey: ["posts"] }), // In case users appear in post data
 			};
 
 			// Helper function to update a single user's follow status
@@ -72,17 +67,17 @@ const useFollow = () => {
 			const updateUsersRecursively = (data) => {
 				if (!data) return data;
 
-				// Handling arrays (user lists, search results, etc.)
+				// Handle arrays (user lists, search results, etc.)
 				if (Array.isArray(data)) {
 					return data.map(updateUsersRecursively);
 				}
 
-				// Handling objects
+				// Handle objects
 				if (typeof data === "object") {
 					let updated = { ...data };
 					let hasChanges = false;
 
-					// Checking if this object IS a user and update it
+					// Check if this object IS a user and update it
 					if (data.uuid || data.userUuid) {
 						const updatedUser = updateUserFollowStatus(data);
 						if (updatedUser !== data) {
@@ -91,7 +86,7 @@ const useFollow = () => {
 						}
 					}
 
-					// Recursively checking all properties that might contain users
+					// Recursively check all properties that might contain users
 					for (const key in data) {
 						if (data[key] && typeof data[key] === "object") {
 							const updatedValue = updateUsersRecursively(data[key]);
@@ -108,7 +103,7 @@ const useFollow = () => {
 				return data;
 			};
 
-			// Updating all cached queries that might contain users
+			// Update all cached queries that might contain users
 			Object.entries(previousData).forEach(([category, queries]) => {
 				queries.forEach(([queryKey, data]) => {
 					if (data) {

@@ -1,11 +1,15 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Posts from "../../components/common/Post/Posts";
 import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkeleton";
 import EditProfileModal from "./EditProfileModal";
 import { FaArrowLeft } from "react-icons/fa6";
 import { IoCalendarOutline } from "react-icons/io5";
-import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
+import {
+	useQuery,
+	useInfiniteQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
 import { formatMemberSinceDate } from "../../utils/memberSinceDate";
 import useFollow from "../../custom_hooks/useFollow.js";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
@@ -17,9 +21,12 @@ const ProfilePage = () => {
 	const [feedType, setFeedType] = useState("posts");
 	const [showFollowersModal, setShowFollowersModal] = useState(false);
 	const [showFollowingModal, setShowFollowingModal] = useState(false);
+
+	
 	const { username } = useParams();
 	const { authUser, authToken } = useAuthContext();
 	const { follow, isPending: isFollowing } = useFollow();
+	const queryClient = useQueryClient();
 
 	// Query to fetch the profile data for the user specified in the URL
 	const {
@@ -42,6 +49,130 @@ const ProfilePage = () => {
 		},
 		enabled: !!authToken,
 	});
+
+	// ✅ Get current follow status from cache (this will update when cache updates)
+	const getCurrentFollowStatus = () => {
+		if (!user?.uuid) return user?.currentUserFollowing || false;
+
+		// Check if this user exists in any cached query with updated follow status
+		const allQueries = [
+			...queryClient.getQueriesData({ queryKey: ["userFollowers"] }),
+			...queryClient.getQueriesData({ queryKey: ["userFollowing"] }),
+			...queryClient.getQueriesData({ queryKey: ["suggestedUsers"] }),
+			...queryClient.getQueriesData({ queryKey: ["userProfile"] }),
+		];
+
+		// Search through all cached data to find this user
+		for (const [queryKey, data] of allQueries) {
+			if (data) {
+				const foundUser = findUserInData(data, user.uuid);
+				if (foundUser && foundUser.currentUserFollowing !== undefined) {
+					return foundUser.currentUserFollowing;
+				}
+			}
+		}
+
+		// Fallback to original query data
+		return user?.currentUserFollowing || false;
+	};
+
+	// ✅ Get current following count from cache (this will update when cache updates)
+	const getCurrentFollowingCount = () => {
+		if (!user?.uuid) return user?.followingCount || 0;
+
+		// Check if this user exists in any cached query with updated following count
+		const allQueries = [
+			...queryClient.getQueriesData({ queryKey: ["userFollowers"] }),
+			...queryClient.getQueriesData({ queryKey: ["userFollowing"] }),
+			...queryClient.getQueriesData({ queryKey: ["suggestedUsers"] }),
+			...queryClient.getQueriesData({ queryKey: ["userProfile"] }),
+		];
+
+		// Search through all cached data to find this user
+		for (const [queryKey, data] of allQueries) {
+			if (data) {
+				const foundUser = findUserInData(data, user.uuid);
+				if (foundUser && foundUser.followingCount !== undefined) {
+					return foundUser.followingCount;
+				}
+			}
+		}
+
+		// Fallback to original query data
+		return user?.followingCount || 0;
+	};
+
+	// ✅ Get current followers count from cache (this will update when cache updates)
+	const getCurrentFollowersCount = () => {
+		if (!user?.uuid) return user?.followersCount || 0;
+
+		// Check if this user exists in any cached query with updated followers count
+		const allQueries = [
+			...queryClient.getQueriesData({ queryKey: ["userFollowers"] }),
+			...queryClient.getQueriesData({ queryKey: ["userFollowing"] }),
+			...queryClient.getQueriesData({ queryKey: ["suggestedUsers"] }),
+			...queryClient.getQueriesData({ queryKey: ["userProfile"] }),
+		];
+
+		// Search through all cached data to find this user
+		for (const [queryKey, data] of allQueries) {
+			if (data) {
+				const foundUser = findUserInData(data, user.uuid);
+				if (foundUser && foundUser.followersCount !== undefined) {
+					return foundUser.followersCount;
+				}
+			}
+		}
+
+		// Fallback to original query data
+		return user?.followersCount || 0;
+	};
+
+	// ✅ Recursive function to find user in nested data structures
+	const findUserInData = (data, targetUuid) => {
+		if (!data) return null;
+
+		// Handle arrays
+		if (Array.isArray(data)) {
+			for (const item of data) {
+				const found = findUserInData(item, targetUuid);
+				if (found) return found;
+			}
+			return null;
+		}
+
+		// Handle objects
+		if (typeof data === "object") {
+			// Check if this object is the user we're looking for
+			if (data.uuid === targetUuid || data.userUuid === targetUuid) {
+				return data;
+			}
+
+			// Recursively search all properties
+			for (const key in data) {
+				if (data[key] && typeof data[key] === "object") {
+					const found = findUserInData(data[key], targetUuid);
+					if (found) return found;
+				}
+			}
+		}
+
+		return null;
+	};
+
+	// ✅ Force component to re-render when cache updates
+	const [, forceUpdate] = useReducer((x) => x + 1, 0);
+
+	// ✅ Subscribe to cache changes
+	useEffect(() => {
+		const unsubscribe = queryClient.getQueryCache().subscribe(() => {
+			forceUpdate();
+		});
+
+		return () => {
+			unsubscribe();
+		};
+	}, [queryClient]);
 
 	// Query to fetch followers using useInfiniteQuery
 	const {
@@ -94,7 +225,10 @@ const ProfilePage = () => {
 	});
 
 	const isMyProfile = authUser?.username === username;
-	const amIFollowing = user?.currentUserFollowing || false;
+	// ✅ Use cache-aware follow status instead of static prop
+	const amIFollowing = getCurrentFollowStatus();
+	const followingCount = getCurrentFollowingCount();
+	const followersCount = getCurrentFollowersCount();
 
 	useEffect(() => {
 		refetch();
@@ -209,7 +343,7 @@ const ProfilePage = () => {
 										onClick={() => setShowFollowingModal(true)}
 									>
 										<span className="font-bold text-white group-hover:text-blue-400 transition-colors">
-											{user.followingCount}
+											{followingCount}
 										</span>
 										<span className="text-gray-400 group-hover:text-blue-400 transition-colors">
 											Following
@@ -220,7 +354,7 @@ const ProfilePage = () => {
 										onClick={() => setShowFollowersModal(true)}
 									>
 										<span className="font-bold text-white group-hover:text-blue-400 transition-colors">
-											{user.followersCount}
+											{followersCount}
 										</span>
 										<span className="text-gray-400 group-hover:text-blue-400 transition-colors">
 											Followers

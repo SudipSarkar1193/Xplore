@@ -71,9 +71,9 @@ const OtpVerificationPage = () => {
 	};
 
 	const handleTimerEnd = () => {
-		toast.error("OOPS 😓 Time out - Please try registering again");
+		toast.error("OTP expired. Please try registering again.");
         navigate("/signup");
-		setIsExpired(true); // (3) Disable inputs after timeout
+		setIsExpired(true);
 	};
 
 	const { mutate: verifyOtp, isPending: isVerifying } = useMutation({

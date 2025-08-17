@@ -25,6 +25,7 @@ const RegisterPage = () => {
 		mutate: signup,
 		isError,
 		isPending,
+		error,
 	} = useMutation({
 		mutationFn: async ({
 			email,
@@ -48,7 +49,7 @@ const RegisterPage = () => {
 				const resData = await res.json();
 
 				if (!res.ok)
-					throw new Error(resData.message || "Failed to create account");
+					throw new Error(resData.error || "Failed to create account");
 				console.log("Registration successful:", resData);
 				return resData;
 			} catch (error) {
@@ -176,7 +177,7 @@ const RegisterPage = () => {
 					<button className="btn rounded-full font-bold btn-outline w-full active:bg-white active:text-black">
 						{isPending ? "Signing up..." : "Sign up"}
 					</button>
-					{isError && <p className="text-red-500">Something went wrong</p>}
+					{isError && <p className="text-red-500">{error.message}</p>}
 				</form>
 
 				<div className="flex flex-col lg:w-2/3 gap-2 mt-4">

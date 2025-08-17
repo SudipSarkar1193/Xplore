@@ -38,18 +38,18 @@ const Post = ({
 		<>
 			<div className="overflow-y-auto overflow-x-auto no-scrollbar h-5"> </div>
 			<div
-				className="overflow-y-auto overflow-x-auto no-scrollbar pr-4 cursor-pointer"
+				className="overflow-y-auto overflow-x-auto no-scrollbar  cursor-pointer"
 				onClick={() => navigate(`/post/${post.postUuid}`)}
 			>
 				{isProfilePage && post && post.parentPostUuid && (
 					<div
-						className="py-1 text-sm flex items-center justify-center  bg-slate-900 rounded-md cursor-pointer hover:bg-slate-800 transition-colors duration-200 italic "
+						className="py-1  text-sm flex items-center justify-center  bg-slate-900 cursor-pointer hover:bg-slate-800 transition-colors duration-200 italic "
 						onClick={(e) => {
 							e.stopPropagation();
 							navigate(`/post/${post.parentPostUuid}`);
 						}}
 					>
-						{`Comment of the post 👉`}
+						{`replied to the post 👉`}
 						<span className="ml-2 hover:text-blue-500 active:to-blue-500 text-wrap">
 							${post.postUuid}
 						</span>

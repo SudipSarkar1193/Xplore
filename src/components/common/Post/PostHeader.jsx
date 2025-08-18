@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import { BsThreeDotsVertical } from "react-icons/bs";
 import LoadingSpinner from "../LoadingSpinner";
 
 const PostHeader = ({
@@ -20,36 +21,51 @@ const PostHeader = ({
 	};
 
 	return (
-		<div className="flex gap-2 items-center">
-			<div className="flex items-center gap-7 flex-1">
+		<div className="flex justify-between items-center w-full">
+			{/* Left Side: Username and Date */}
+			<div className="flex items-center gap-2">
 				<Link
 					to={`/profile/${postOwner.username}`}
-					className="font-bold justify-self-start"
+					className="font-bold hover:underline"
 					onClick={(e) => e.stopPropagation()}
 				>
 					@{postOwner.username}
 				</Link>
-				<span className="text-gray-700 flex text-sm justify-self-end ">
-					<span>{formattedDate}</span>
-				</span>
+				<span className="text-gray-500 text-sm">·</span>
+				<span className="text-gray-500 text-sm">{formattedDate}</span>
 			</div>
+
+			{/* Right Side: Dropdown Menu for Edit/Delete */}
 			{isMyPost && (
-				<span className="flex justify-end flex-1 gap-2">
-					{isPendingDelete ? (
-						<LoadingSpinner size="sm" />
-					) : (
-						<>
-							<FaEdit
-								className="cursor-pointer hover:text-blue-500"
-								onClick={showEditModal}
-							/>
-							<FaTrash
-								className="cursor-pointer hover:text-red-500"
-								onClick={showDeleteModal}
-							/>
-						</>
-					)}
-				</span>
+				<div className="dropdown dropdown-end">
+					<button
+						tabIndex={0}
+						className="btn btn-ghost btn-sm btn-circle"
+						onClick={(e) => e.stopPropagation()}
+						aria-label="Post options"
+					>
+						{isPendingDelete ? (
+							<LoadingSpinner size="sm" />
+						) : (
+							<BsThreeDotsVertical className="w-5 h-5" />
+						)}
+					</button>
+					<ul
+						tabIndex={0}
+						className="dropdown-content menu p-2 shadow bg-base-200 rounded-box w-32 z-[1]"
+					>
+						<li>
+							<a onClick={showEditModal}>
+								<FaEdit className="mr-2" /> Edit
+							</a>
+						</li>
+						<li>
+							<a onClick={showDeleteModal} className="text-red-500">
+								<FaTrash className="mr-2" /> Delete
+							</a>
+						</li>
+					</ul>
+				</div>
 			)}
 		</div>
 	);

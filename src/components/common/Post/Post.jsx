@@ -36,9 +36,8 @@ const Post = ({
 
 	return (
 		<>
-			<div className="overflow-y-auto overflow-x-auto no-scrollbar  h-5"> </div>
 			<div
-				className="overflow-y-auto overflow-x-auto no-scrollbar cursor-pointer"
+				className="cursor-pointer"
 				onClick={() => navigate(`/post/${post.postUuid}`)}
 			>
 				{isProfilePage && post && post.parentPostUuid && (
@@ -50,39 +49,39 @@ const Post = ({
 						}}
 					>
 						{"replied to the post 👉"}
-
 						<span className="ml-2 hidden md:inline hover:text-blue-500 active:text-blue-500 break-words">
 							{post.postUuid}
 						</span>
-
 						<span className="ml-2 md:hidden hover:text-blue-500 active:text-blue-500 break-words">
 							{post.postUuid.slice(0, 8)}...
 						</span>
 					</div>
 				)}
 
-				<div className="p-5 flex flex-col gap-2 items-start py-4  border-b border-gray-700">
-					<div className="flex items-center gap-2">
-						<div className="avatar">
-							<Link
-								onClick={(e) => e.stopPropagation()}
-								to={`/profile/${postOwner?.username}`}
-							>
-								<div className="w-8 rounded-full">
-									<img
-										src={postOwner?.profileImg || "/avatar-placeholder.png"}
-									/>
-								</div>
-							</Link>
-						</div>
+				<div className="flex gap-3 p-4 border-b border-gray-700">
+					{/* Avatar Column */}
+					<div className="avatar">
+						<Link
+							onClick={(e) => e.stopPropagation()}
+							to={`/profile/${postOwner?.username}`}
+						>
+							<div className="w-8 rounded-full">
+								<img
+									src={postOwner?.profileImg || "/avatar-placeholder.png"}
+									alt={`${postOwner.username}'s avatar`}
+								/>
+							</div>
+						</Link>
+					</div>
+
+					{/* Content Column */}
+					<div className="flex flex-col gap-2 flex-1">
 						<PostHeader
 							postOwner={postOwner}
 							formattedDate={formattedDate}
 							isMyPost={isMyPost}
 							postUuid={post.postUuid}
 						/>
-					</div>
-					<div className="flex flex-col flex-1  w-full">
 						<PostBody content={post.content} imageUrls={post.imageUrls} />
 						<PostFooter
 							post={post}
@@ -95,6 +94,7 @@ const Post = ({
 						/>
 					</div>
 				</div>
+
 				{isMyPost && <PostModals post={post} parentPostUuid={parentPostUuid} />}
 			</div>
 		</>
@@ -102,7 +102,3 @@ const Post = ({
 };
 
 export default Post;
-
-// {post && post.parentPostUuid && (
-// 				<div className="w-[70%] py-[1/2] text-sm flex items-center justify-center border border-blue-600">{`Comment of the post ${post.postUuid}`}</div>
-// 			)}

@@ -7,7 +7,6 @@ import { backendServer } from "../../BackendServer.js";
 import { useAuthContext } from "../../context/AuthContext.jsx";
 import UserListItem from "./UserListItem.jsx";
 
-
 const RightPanel = () => {
 	const { authToken, authUser } = useAuthContext();
 	const { follow, isPending } = useFollow();
@@ -25,7 +24,7 @@ const RightPanel = () => {
 				return data;
 			} catch (error) {
 				console.error(`Error at ${backendServer}/api/users/suggestions`, error);
-				return []; 
+				return [];
 			}
 		},
 		enabled: !!authToken,
@@ -42,10 +41,15 @@ const RightPanel = () => {
 	}
 
 	return (
-		<div className="hidden lg:block my-4 w-full min-h-screen">
+		<div className=" my-4 w-full min-h-screen">
 			<div className="px-4 rounded-md sticky top-2">
-				<div className="flex flex-col gap-4 ">
+				<div className="hidden md:flex flex-col gap-4 ">
 					{suggestedUsers?.content.map((user) => (
+						<UserListItem key={user.uuid} user={user} />
+					))}
+				</div>
+				<div className="flex flex-col gap-4 md:hidden ">
+					{suggestedUsers?.content.slice(0, 4).map((user) => (
 						<UserListItem key={user.uuid} user={user} />
 					))}
 				</div>

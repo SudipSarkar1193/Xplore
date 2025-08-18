@@ -40,7 +40,7 @@ const App = () => {
 	}
 
 	return (
-		<div className="flex max-w-screen mx-auto overflow-x-hidden no-scrollbar overflow-y-auto">
+		<div className="flex max-w-screen mx-auto">
 			<Toaster />
 			<Suspense fallback={<StyledLoadingSpinner />}>
 				{authUser ? (
@@ -52,23 +52,28 @@ const App = () => {
 
 						<Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
-						{/* Adjust main content for desktop to fix the empty space */}
-						<main className="flex-grow min-w-0 pt-14 lg:pt-0 lg:ml-64 xl:ml-72">
-							<Routes>
-								<Route path="/" element={<HomePage />} />
-								<Route path="/login" element={<Navigate to="/" />} />
-								<Route path="/signup" element={<Navigate to="/" />} />
-								<Route path="/notifications" element={<NotificationPage />} />
-								<Route path="/profile/:username" element={<ProfilePage />} />
-								<Route path="/post/:postUuid" element={<PostPage />} />
-								<Route path="/bookmarks" element={<BookmarkPage />} />
-								<Route path="*" element={<Navigate to="/" />} />
-							</Routes>
-						</main>
+						{/* Main content container */}
+						<div className="flex flex-1 min-h-screen">
+							{/* Main content area */}
+							<main className="flex-1 min-w-0 pt-14 lg:pt-0 lg:ml-64 xl:ml-72 overflow-y-auto">
+								<Routes>
+									<Route path="/" element={<HomePage />} />
+									<Route path="/login" element={<Navigate to="/" />} />
+									<Route path="/signup" element={<Navigate to="/" />} />
+									<Route path="/notifications" element={<NotificationPage />} />
+									<Route path="/profile/:username" element={<ProfilePage />} />
+									<Route path="/post/:postUuid" element={<PostPage />} />
+									<Route path="/bookmarks" element={<BookmarkPage />} />
+									<Route path="*" element={<Navigate to="/" />} />
+								</Routes>
+							</main>
 
-						{/* Right Panel for desktop */}
-						<div className="hidden lg:block lg:w-[450px] flex-shrink-0">
-							<RightPanel />
+							{/* Right Panel for desktop */}
+							<aside className="hidden lg:block lg:w-[450px] flex-shrink-0">
+								<div className="sticky top-0 h-screen overflow-y-auto no-scrollbar">
+									<SearchUser />
+								</div>
+							</aside>
 						</div>
 
 						{/* Search Modal for mobile */}

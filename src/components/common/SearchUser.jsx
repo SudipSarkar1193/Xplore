@@ -115,7 +115,7 @@ export const SearchUser = ({ show = false, isModalMode = false }) => {
 							ref={scrollContainerRef}
 							className="max-h-screen overflow-y-auto no-scrollbar"
 						>
-							{!search && !isModalMode && <RightPanel />}
+							{!search && <RightPanel />}
 
 							{search && isLoading && !data && <LoadingSpinner />}
 

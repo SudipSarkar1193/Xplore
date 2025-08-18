@@ -7,6 +7,7 @@ import { FaUser, FaTimes, FaBookmark } from "react-icons/fa";
 import { BiLogOut } from "react-icons/bi";
 import { useAuthContext } from "../../context/AuthContext";
 import toast from "react-hot-toast";
+
 const Sidebar = ({ isOpen, setIsOpen }) => {
 	const { authUser, logout } = useAuthContext();
 
@@ -49,7 +50,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 						<FaTimes size={20} />
 					</button>
 				</div>
-				
+
 				<div className="hidden lg:flex items-center p-4 border-b border-gray-700">
 					<Link to="/">
 						<XSvg className="w-8 h-8 fill-white" />
@@ -66,7 +67,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 								onClick={handleLinkClick}
 							>
 								<MdHomeFilled className="w-8 h-8" />
-								<span className="text-lg hidden lg:block">Home</span>
+								<span className="text-lg">Home</span>
 							</Link>
 						</li>
 						<li>
@@ -76,7 +77,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 								onClick={handleLinkClick}
 							>
 								<IoNotifications className="w-6 h-6" />
-								<span className="text-lg hidden lg:block">Notifications</span>
+								<span className="text-lg">Notifications</span>
 							</Link>
 						</li>
 						<li>
@@ -86,20 +87,18 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 								onClick={handleLinkClick}
 							>
 								<FaUser className="w-6 h-6" />
-								<span className="text-lg hidden lg:block">Profile</span>
+								<span className="text-lg">Profile</span>
 							</Link>
 						</li>
 						<li>
 							<Link
-								// to={`/bookmarks`}
 								className="flex gap-3 items-center hover:bg-secondary transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
-								// onClick={handleLinkClick}
 								onClick={() => {
 									toast("Bookmarks feature coming soon!");
 								}}
 							>
 								<FaBookmark className="w-6 h-6" />
-								<span className="text-lg hidden lg:block">Bookmarks</span>
+								<span className="text-lg">Bookmarks</span>
 							</Link>
 						</li>
 					</ul>
@@ -107,7 +106,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
 				{/* User Profile section at the bottom */}
 				{authUser && (
-					<div className="p-4 border-t border-gray-700 hidden lg:block">
+					<div className="p-4 border-t border-gray-700">
 						<Link
 							to={`/profile/${authUser.username}`}
 							className="flex gap-2 items-center transition-all duration-300 hover:bg-secondary py-2 px-4 rounded-full"
@@ -116,7 +115,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 							<div className="avatar">
 								<div className="w-8 rounded-full">
 									<img
-										src={authUser.profilePictureUrl || "/avatar-placeholder.png"}
+										src={
+											authUser.profilePictureUrl || "/avatar-placeholder.png"
+										}
 										alt="Profile"
 									/>
 								</div>

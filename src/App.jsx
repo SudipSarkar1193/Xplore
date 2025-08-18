@@ -7,7 +7,9 @@ import LoadingSpinner from "./components/common/LoadingSpinner";
 import { SearchUser } from "./components/common/SearchUser";
 import { useAuthContext } from "./context/AuthContext";
 import OtpVerificationPage from "./pages/auth/OtpVerificationPage";
-import { FaBars } from "react-icons/fa";
+
+// Import the new MobileHeader component
+import MobileHeader from "./components/common/MobileHeader";
 
 const ErrorPage = lazy(() => import("./pages/error/ErrorPage"));
 const HomePage = lazy(() => import("./pages/home/HomePage"));
@@ -25,6 +27,7 @@ const PostPage = lazy(() => import("./pages/post/PostPage"));
 const App = () => {
 	const { authUser, isLoading } = useAuthContext();
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+	const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
 	const StyledLoadingSpinner = () => (
 		<div className="h-svh w-screen flex items-center justify-center">
@@ -40,33 +43,47 @@ const App = () => {
 		<div className="flex max-w-screen mx-auto overflow-x-hidden no-scrollbar overflow-y-auto">
 			<Toaster />
 			<Suspense fallback={<StyledLoadingSpinner />}>
-				{authUser ? ( // if user is authenticated
+				{authUser ? (
 					<>
-						<div className="fixed top-4 left-4 z-30 h-10 w-10 ">
-							<button
-								onClick={() => setIsSidebarOpen(true)}
-								className="p-2 rounded-full bg-gray-800/80 backdrop-blur-sm text-white hover:bg-gray-700 transition-colors"
-								aria-label="Open sidebar"
-							>
-								<FaBars size={20} />
-							</button>
-						</div>
+						<MobileHeader 
+							onMenuClick={() => setIsSidebarOpen(true)}
+							onSearchClick={() => setIsSearchModalOpen(true)}
+						/>
+
 						<Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
-						<main className="flex-grow min-w-0 ml-16 md:ml-20">
-							<div className="">
-								<Routes>
-									<Route path="/" element={<HomePage />} />
-									<Route path="/login" element={<Navigate to="/" />} />
-									<Route path="/signup" element={<Navigate to="/" />} />
-									<Route path="/notifications" element={<NotificationPage />} />
-									<Route path="/profile/:username" element={<ProfilePage />} />
-									<Route path="/post/:postUuid" element={<PostPage />} />
-									<Route path="*" element={<Navigate to="/" />} />
-								</Routes>
-							</div>
+						{/* Adjust main content for desktop to fix the empty space */}
+						<main className="flex-grow min-w-0 pt-14 lg:pt-0 lg:ml-64 xl:ml-72">
+							<Routes>
+								<Route path="/" element={<HomePage />} />
+								<Route path="/login" element={<Navigate to="/" />} />
+								<Route path="/signup" element={<Navigate to="/" />} />
+								<Route path="/notifications" element={<NotificationPage />} />
+								<Route path="/profile/:username" element={<ProfilePage />} />
+								<Route path="/post/:postUuid" element={<PostPage />} />
+								<Route path="/bookmarks" element={<BookmarkPage />} />
+								<Route path="*" element={<Navigate to="/" />} />
+							</Routes>
 						</main>
-						<SearchUser />
+
+						{/* Right Panel for desktop */}
+						<div className="hidden lg:block lg:w-[450px] flex-shrink-0">
+							<RightPanel />
+						</div>
+
+						{/* Search Modal for mobile */}
+						<dialog className={`modal ${isSearchModalOpen ? "modal-open" : ""}`}>
+							<div className="modal-box">
+								<button
+									onClick={() => setIsSearchModalOpen(false)}
+									className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+								>
+									✕
+								</button>
+								<SearchUser isModalMode={true} />
+							</div>
+						</dialog>
+
 					</>
 				) : (
 					<div className="w-full">

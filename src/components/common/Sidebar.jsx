@@ -1,15 +1,13 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import XSvg from "../svgs/X";
 import { MdHomeFilled } from "react-icons/md";
 import { IoNotifications } from "react-icons/io5";
-import { FaUser, FaSearch, FaTimes } from "react-icons/fa";
+import { FaUser, FaTimes, FaBookmark } from "react-icons/fa";
 import { BiLogOut } from "react-icons/bi";
 import { useAuthContext } from "../../context/AuthContext";
-import { SearchUser } from "./SearchUser";
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
-	const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 	const { authUser, logout } = useAuthContext();
 
 	const handleLogout = (e) => {
@@ -22,17 +20,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 		setIsOpen(false);
 	};
 
-	const openSearchModal = () => {
-		setIsOpen(false); // Close the sidebar first
-		setIsSearchModalOpen(true);
-	};
-
 	return (
 		<>
 			{/* Backdrop Overlay */}
 			{isOpen && (
 				<div
-					className="fixed inset-0 bg-black bg-opacity-50 z-40"
+					className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
 					onClick={() => setIsOpen(false)}
 				/>
 			)}
@@ -41,10 +34,10 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 			<aside
 				className={`fixed top-0 left-0 h-full bg-black z-50 transition-transform duration-300 ease-in-out flex flex-col border-r border-gray-700 
                     ${isOpen ? "translate-x-0" : "-translate-x-full"} 
-                    w-64 md:w-72`}
+                    w-64 md:w-72 lg:w-64 xl:w-72 lg:translate-x-0`}
 			>
-				{/* Sidebar Header with Logo and Close Button */}
-				<div className="flex items-center justify-between p-4 border-b border-gray-700">
+				{/* Sidebar Header with Logo and Close Button (Mobile) */}
+				<div className="flex items-center justify-between p-4 border-b border-gray-700 lg:hidden">
 					<Link to="/" onClick={handleLinkClick}>
 						<XSvg className="w-8 h-8 fill-white" />
 					</Link>
@@ -55,6 +48,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 					>
 						<FaTimes size={20} />
 					</button>
+				</div>
+				
+				<div className="hidden lg:flex items-center p-4 border-b border-gray-700">
+					<Link to="/">
+						<XSvg className="w-8 h-8 fill-white" />
+					</Link>
 				</div>
 
 				{/* Navigation Links */}
@@ -67,17 +66,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 								onClick={handleLinkClick}
 							>
 								<MdHomeFilled className="w-8 h-8" />
-								<span className="text-lg">Home</span>
+								<span className="text-lg hidden lg:block">Home</span>
 							</Link>
-						</li>
-						<li className="md:hidden"> {/* Hide on medium screens and up */}
-							<button
-								className="flex gap-3 items-center hover:bg-secondary transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
-								onClick={openSearchModal}
-							>
-								<FaSearch className="w-6 h-6" />
-								<span className="text-lg">Search</span>
-							</button>
 						</li>
 						<li>
 							<Link
@@ -86,7 +76,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 								onClick={handleLinkClick}
 							>
 								<IoNotifications className="w-6 h-6" />
-								<span className="text-lg">Notifications</span>
+								<span className="text-lg hidden lg:block">Notifications</span>
 							</Link>
 						</li>
 						<li>
@@ -96,7 +86,17 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 								onClick={handleLinkClick}
 							>
 								<FaUser className="w-6 h-6" />
-								<span className="text-lg">Profile</span>
+								<span className="text-lg hidden lg:block">Profile</span>
+							</Link>
+						</li>
+						<li>
+							<Link
+								to={`/bookmarks`}
+								className="flex gap-3 items-center hover:bg-secondary transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+								onClick={handleLinkClick}
+							>
+								<FaBookmark className="w-6 h-6" />
+								<span className="text-lg hidden lg:block">Bookmarks</span>
 							</Link>
 						</li>
 					</ul>
@@ -104,7 +104,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
 				{/* User Profile section at the bottom */}
 				{authUser && (
-					<div className="p-4 border-t border-gray-700">
+					<div className="p-4 border-t border-gray-700 hidden lg:block">
 						<Link
 							to={`/profile/${authUser.username}`}
 							className="flex gap-2 items-center transition-all duration-300 hover:bg-secondary py-2 px-4 rounded-full"
@@ -134,19 +134,6 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 					</div>
 				)}
 			</aside>
-
-			{/* Search Modal */}
-			<dialog className={`modal ${isSearchModalOpen ? "modal-open" : ""}`}>
-				<div className="modal-box">
-					<button
-						onClick={() => setIsSearchModalOpen(false)}
-						className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-					>
-						✕
-					</button>
-					<SearchUser show={true} isModalMode={true} />
-				</div>
-			</dialog>
 		</>
 	);
 };

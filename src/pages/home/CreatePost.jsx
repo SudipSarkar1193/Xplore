@@ -9,9 +9,9 @@ import { useAuthContext } from "../../context/AuthContext";
 import { Link } from "react-router-dom";
 import useComment from "../../custom_hooks/useComment";
 
-const CreatePost = ({ parentPostUuid }) => {
+const CreatePost = ({ parentPostUuid, maxImages = 10 }) => {
 	const [text, setText] = useState("");
-	const [img, setImg] = useState(null);
+	const [imgs, setImgs] = useState([]); 
 	const imgRef = useRef(null);
 
 	const { authUser, authToken } = useAuthContext();
@@ -19,7 +19,11 @@ const CreatePost = ({ parentPostUuid }) => {
 
 	const { commentPost, isCommenting } = useComment();
 
-	const { mutate: createPost, isPending: isCreatingPost, isError, } = useMutation({
+	const {
+		mutate: createPost,
+		isPending: isCreatingPost,
+		isError,
+	} = useMutation({
 		mutationFn: async ({ content, imageUrls }) => {
 			try {
 				const res = await fetch(`${backendServer}/api/posts`, {
@@ -42,7 +46,7 @@ const CreatePost = ({ parentPostUuid }) => {
 		},
 		onSuccess: () => {
 			setText("");
-			setImg(null);
+			setImgs([]);
 			toast.success("Post created successfully");
 			queryClient.invalidateQueries({ queryKey: ["posts"] });
 		},
@@ -55,7 +59,7 @@ const CreatePost = ({ parentPostUuid }) => {
 	const handleSubmit = (e) => {
 		e.preventDefault();
 		if (isCreatingPost || isCommenting) return;
-		if (!text.trim() && !img) {
+		if (!text.trim() && imgs.length === 0) { 
 			toast.error("Please enter some text or select an image");
 			return;
 		}
@@ -64,25 +68,43 @@ const CreatePost = ({ parentPostUuid }) => {
 			return;
 		}
 
-		const imageUrls = img ? [img] : [];
+		const imageUrls = imgs; 
 
 		if (parentPostUuid) {
 			commentPost({ parentPostUuid, content: text, imageUrls });
 			setText("");
-			setImg(null);
+			setImgs([]);
 		} else {
 			createPost({ content: text, imageUrls });
 		}
 	};
 
+	// handle multiple files and update the state by adding to the array
 	const handleImgChange = (e) => {
-		const file = e.target.files[0];
-		if (file) {
-			const reader = new FileReader();
-			reader.onload = () => {
-				setImg(reader.result);
-			};
-			reader.readAsDataURL(file);
+		const files = Array.from(e.target.files);
+		const remainingSlots = maxImages - imgs.length;
+		if (remainingSlots <= 0) {
+			toast.error(`You can only upload a maximum of ${maxImages} images.`);
+			return;
+		}
+
+		const filesToAdd = files.slice(0, remainingSlots);
+
+		filesToAdd.forEach((file) => {
+			if (file) {
+				const reader = new FileReader();
+				reader.onload = () => {
+					setImgs((prevImgs) => [...prevImgs, reader.result]); 
+				};
+				reader.readAsDataURL(file);
+			}
+		});
+	};
+
+	const removeImage = (indexToRemove) => {
+		setImgs((prev) => prev.filter((_, index) => index !== indexToRemove)); 
+		if (imgRef.current) {
+			imgRef.current.value = null;
 		}
 	};
 
@@ -95,6 +117,7 @@ const CreatePost = ({ parentPostUuid }) => {
 					<Link to={`/profile/${authUser?.username}`}>
 						<img
 							src={authUser?.profilePictureUrl || "/avatar-placeholder.png"}
+							alt="User avatar"
 						/>
 					</Link>
 				</div>
@@ -102,23 +125,27 @@ const CreatePost = ({ parentPostUuid }) => {
 			<form className="flex flex-col gap-2 w-full" onSubmit={handleSubmit}>
 				<textarea
 					className="textarea w-full p-0 text-lg resize-none border-none focus:outline-none  border-gray-800"
-					placeholder={parentPostUuid ? "Post your reply" : "What is happening?!"}
+					placeholder={
+						parentPostUuid ? "Post your reply" : "What is happening?!"
+					}
 					value={text}
 					onChange={(e) => setText(e.target.value)}
 				/>
-				{img && (
-					<div className="relative w-72 mx-auto">
-						<IoCloseSharp
-							className="absolute top-0 right-0 text-white bg-gray-800 rounded-full w-5 h-5 cursor-pointer hover:scale-50"
-							onClick={() => {
-								setImg(null);
-								imgRef.current.value = null;
-							}}
-						/>
-						<img
-							src={img}
-							className="w-full mx-auto h-72 object-contain rounded"
-						/>
+				{imgs.length > 0 && (
+					<div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+						{imgs.map((imgSrc, index) => ( // Map over imgs array
+							<div key={index} className="relative">
+								<IoCloseSharp
+									className="absolute top-1 right-1 text-white bg-gray-800 rounded-full w-5 h-5 cursor-pointer hover:bg-red-600 transition-colors"
+									onClick={() => removeImage(index)}
+								/>
+								<img
+									src={imgSrc}
+									className="w-full h-32 object-cover rounded"
+									alt={`Selected image ${index + 1}`}
+								/>
+							</div>
+						))}
 					</div>
 				)}
 				<div className="flex justify-between border-t py-2 border-t-gray-700">
@@ -129,9 +156,19 @@ const CreatePost = ({ parentPostUuid }) => {
 						/>
 						<BsEmojiSmileFill className="fill-primary w-5 h-5 cursor-pointer" />
 					</div>
-					<input type="file" hidden ref={imgRef} onChange={handleImgChange} />
-					<button className="btn btn-primary rounded-full btn-sm text-white px-4" disabled={isPending}>
-						{isPending ? "Posting..." : (parentPostUuid ? "Reply" : "Post")}
+					<input
+						type="file"
+						multiple
+						hidden
+						ref={imgRef}
+						onChange={handleImgChange}
+						accept="image/*"
+					/>
+					<button
+						className="btn btn-primary rounded-full btn-sm text-white px-4"
+						disabled={isPending}
+					>
+						{isPending ? "Posting..." : parentPostUuid ? "Reply" : "Post"}
 					</button>
 				</div>
 				{isError && <div className="text-red-500">Something went wrong</div>}

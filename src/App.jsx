@@ -17,13 +17,11 @@ const NotificationPage = lazy(() =>
 );
 const BookmarkPage = lazy(() => import("./pages/profile/BookmarkPage"));
 const ProfilePage = lazy(() => import("./pages/profile/ProfilePage"));
-// const EmailVerifyPage = lazy(() => import("./pages/auth/EmailVerifyPage"));
 const Sidebar = lazy(() => import("./components/common/Sidebar"));
 const RightPanel = lazy(() => import("./components/common/RightPanel"));
-const PostPage = lazy(() => import("./pages/post/PostPage")); 
+const PostPage = lazy(() => import("./pages/post/PostPage"));
 
 const App = () => {
-	// Using the authUser and isLoading state from the context
 	const { authUser, isLoading } = useAuthContext();
 
 	const StyledLoadingSpinner = () => (
@@ -37,27 +35,29 @@ const App = () => {
 	}
 
 	return (
-		<div className="flex justify-between max-w-6xl mx-auto">
+		<div className="flex max-w-screen mx-auto overflow-x-hidden no-scrollbar overflow-y-auto">
 			<Toaster />
 			<Suspense fallback={<StyledLoadingSpinner />}>
-				{authUser ? ( // if authUser exists i.e user is already autheticated
+				{authUser ? ( // if user is authenticated
 					<>
 						<Sidebar />
-						<Routes>
-							<Route path="/" element={<HomePage />} />
-							<Route path="/login" element={<Navigate to="/" />} />
-							<Route path="/signup" element={<Navigate to="/" />} />
-							<Route path="/notifications" element={<NotificationPage />} />
-							<Route path="/profile/:username" element={<ProfilePage />} />
-							<Route path="/post/:postUuid" element={<PostPage />} />
-
-							{/* <Route path="/bookmarks" element={<BookmarkPage />} /> */}
-							<Route path="*" element={<Navigate to="/" />} />
-						</Routes>
+						<main className="flex-grow min-w-0 ml-16 md:ml-20">
+							<div className="border-x border-gray-700">
+								<Routes>
+									<Route path="/" element={<HomePage />} />
+									<Route path="/login" element={<Navigate to="/" />} />
+									<Route path="/signup" element={<Navigate to="/" />} />
+									<Route path="/notifications" element={<NotificationPage />} />
+									<Route path="/profile/:username" element={<ProfilePage />} />
+									<Route path="/post/:postUuid" element={<PostPage />} />
+									<Route path="*" element={<Navigate to="/" />} />
+								</Routes>
+							</div>
+						</main>
 						<SearchUser />
 					</>
 				) : (
-					<>
+					<div className="w-full">
 						<BackgroundPage />
 						<Routes>
 							<Route path="/login" element={<LoginPage />} />
@@ -65,7 +65,7 @@ const App = () => {
 							<Route path="/verify-otp" element={<OtpVerificationPage />} />
 							<Route path="*" element={<Navigate to="/login" />} />
 						</Routes>
-					</>
+					</div>
 				)}
 			</Suspense>
 		</div>

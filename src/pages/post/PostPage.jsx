@@ -42,7 +42,7 @@ const PostPage = () => {
 	}, [postUuid, refetch]);
 
 	return (
-		<div className="flex-[4_4_0] border-r border-gray-700 min-h-screen bg-gray-950">
+		<div className="w-full min-h-screen bg-gray-950">
 			{(isLoading || isRefetching) && <PostSkeleton />}
 			{!isLoading && !isRefetching && !post && (
 				<div className="text-center p-4">Post not found</div>

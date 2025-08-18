@@ -42,9 +42,9 @@ const RightPanel = () => {
 	}
 
 	return (
-		<div className="hidden lg:block my-4 mx-4">
-			<div className="bg-gray-800 p-4 rounded-md sticky top-2">
-				<div className="flex flex-col gap-4 mt-2">
+		<div className="hidden lg:block my-4 w-full min-h-screen">
+			<div className="px-4 rounded-md sticky top-2">
+				<div className="flex flex-col gap-4 ">
 					{suggestedUsers?.content.map((user) => (
 						<UserListItem key={user.uuid} user={user} />
 					))}

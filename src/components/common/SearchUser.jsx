@@ -7,7 +7,7 @@ import LoadingSpinner from "./LoadingSpinner";
 import RightPanel from "./RightPanel";
 import UserListItem from "./UserListItem";
 
-export const SearchUser = ({ show = false }) => {
+export const SearchUser = ({ show = false, isModalMode = false }) => {
 	const [search, setSearch] = useState("");
 	const { authToken } = useAuthContext();
 	const loadMoreRef = useRef(null);
@@ -34,14 +34,9 @@ export const SearchUser = ({ show = false }) => {
 				}
 
 				const data = await res.json();
-
-				console.log("Fetched users:", data);
-
 				return data;
 			},
 			getNextPageParam: (lastPage, allPages) => {
-				// console.log("Last page:", lastPage);
-				// console.log("All pages:", allPages);
 				return lastPage.last ? undefined : allPages.length;
 			},
 			initialPageParam: 0,
@@ -73,14 +68,12 @@ export const SearchUser = ({ show = false }) => {
 	}, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
 	useEffect(() => {
-		// Update allUsers once data is fetched
 		if (data) {
 			setAllUsers(data.pages.flatMap((page) => page.content) || []);
 		}
 	}, [data]);
 
 	useEffect(() => {
-		// Filter users based on search
 		if (search) {
 			setFilteredUsers(
 				allUsers.filter(
@@ -96,11 +89,12 @@ export const SearchUser = ({ show = false }) => {
 		}
 	}, [search, allUsers]);
 
-	console.log("All users:", allUsers);
-	console.log("Filtered users:", filteredUsers);
+	const containerClasses = isModalMode
+		? "w-full"
+		: `${show ? "block" : "hidden"} lg:block lg:w-[450px] flex-shrink-0 h-screen`;
 
 	return (
-		<div className={`${show ? "block" : "hidden"} lg:block h-screen`}>
+		<div className={containerClasses}>
 			<div className="flex items-center justify-center">
 				<div className="block lg:block bg-transparent p-4 rounded-md">
 					<div className="flex flex-col gap-4">
@@ -113,15 +107,15 @@ export const SearchUser = ({ show = false }) => {
 							/>
 						</label>
 
-						<p className="font-bold mb-2">
-							{search ? "Search Results" : "Who to follow..."}
+						<p className="font-bold mb-2 text-xl md:text-2xl text-center">
+							{search ? "Search Results" : "Suggested Users"}
 						</p>
 
 						<div
 							ref={scrollContainerRef}
-							className="max-h-[70vh] overflow-y-auto"
+							className="max-h-screen overflow-y-auto no-scrollbar"
 						>
-							{!search && <RightPanel />}
+							{!search && !isModalMode && <RightPanel />}
 
 							{search && isLoading && !data && <LoadingSpinner />}
 
@@ -130,9 +124,6 @@ export const SearchUser = ({ show = false }) => {
 									<UserListItem key={user.uuid} user={user} />
 								))}
 
-							{/* --- FIX STARTS HERE --- */}
-
-							{/* Show this button when search is active, results are empty, but more pages exist */}
 							{search &&
 								filteredUsers.length === 0 &&
 								hasNextPage &&
@@ -147,7 +138,6 @@ export const SearchUser = ({ show = false }) => {
 									</div>
 								)}
 
-							{/* Show "No users found" only when search is done and there are no more pages */}
 							{search &&
 								filteredUsers.length === 0 &&
 								!hasNextPage &&
@@ -157,12 +147,9 @@ export const SearchUser = ({ show = false }) => {
 									</p>
 								)}
 
-							{/* The infinite scroll trigger, now only for when there are results to scroll through */}
 							{search && filteredUsers.length > 0 && hasNextPage && (
 								<div ref={loadMoreRef} className="h-1" />
 							)}
-
-							{/* --- FIX ENDS HERE --- */}
 
 							{search && isFetchingNextPage && (
 								<div className="flex justify-center p-2">

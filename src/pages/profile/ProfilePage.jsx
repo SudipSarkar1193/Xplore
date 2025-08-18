@@ -239,7 +239,7 @@ const ProfilePage = () => {
 
 	return (
 		<>
-			<div className="flex-[4_4_0] overflow-x-hidden border-r border-gray-700 min-h-screen bg-gray-950">
+			<div className="w-full overflow-x-hidden min-h-screen bg-gray-950">
 				{(isLoading || isRefetching) && <ProfileHeaderSkeleton />}
 				{!isLoading && !isRefetching && !user && (
 					<div className="text-center mt-8 p-8">

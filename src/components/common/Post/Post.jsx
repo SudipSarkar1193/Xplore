@@ -43,19 +43,20 @@ const Post = ({
 			>
 				{isProfilePage && post && post.parentPostUuid && (
 					<div
-						className="py-1  text-sm flex items-center justify-center  bg-slate-900 cursor-pointer hover:bg-slate-800 transition-colors duration-200 italic "
+						className="py-1 text-sm flex items-center justify-center bg-slate-900 cursor-pointer hover:bg-slate-800 transition-colors duration-200 italic"
 						onClick={(e) => {
 							e.stopPropagation();
 							navigate(`/post/${post.parentPostUuid}`);
 						}}
 					>
-						{`replied to the post 👉`}
-						<span className="ml-2 sm:hidden md:block hover:text-blue-500 active:to-blue-500 text-wrap">
-							${post.postUuid}
+						{"replied to the post 👉"}
+
+						<span className="ml-2 hidden md:inline hover:text-blue-500 active:text-blue-500 break-words">
+							{post.postUuid}
 						</span>
 
-						<span className="ml-2 md:hidden hover:text-blue-500 active:to-blue-500 text-wrap">
-							${post.postUuid.slice(0, 8)}...
+						<span className="ml-2 md:hidden hover:text-blue-500 active:text-blue-500 break-words">
+							{post.postUuid.slice(0, 8)}...
 						</span>
 					</div>
 				)}

@@ -50,8 +50,12 @@ const Post = ({
 						}}
 					>
 						{`replied to the post 👉`}
-						<span className="ml-2 hover:text-blue-500 active:to-blue-500 text-wrap">
+						<span className="ml-2 sm:hidden md:block hover:text-blue-500 active:to-blue-500 text-wrap">
 							${post.postUuid}
+						</span>
+
+						<span className="ml-2 md:hidden hover:text-blue-500 active:to-blue-500 text-wrap">
+							${post.postUuid.slice(0, 8)}...
 						</span>
 					</div>
 				)}

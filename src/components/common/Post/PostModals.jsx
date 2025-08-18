@@ -7,7 +7,7 @@ import { backendServer } from "../../../BackendServer";
 import { useAuthContext } from "../../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-const PostModals = ({ post, maxImages = 4, parentPostUuid }) => {
+const PostModals = ({ post, maxImages = 15, parentPostUuid }) => {
 	const [editContent, setEditContent] = useState("");
 	const [editImages, setEditImages] = useState([]);
 	const editImageInputRef = useRef(null);

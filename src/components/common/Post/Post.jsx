@@ -43,7 +43,7 @@ const Post = ({
 			>
 				{isProfilePage && post && post.parentPostUuid && (
 					<div
-						className="py-1 text-sm flex items-center justify-center bg-slate-900 cursor-pointer hover:bg-slate-800 transition-colors duration-200 italic"
+						className="p-1 text-sm flex items-center justify-center bg-slate-900 cursor-pointer hover:bg-slate-800 transition-colors duration-200 italic"
 						onClick={(e) => {
 							e.stopPropagation();
 							navigate(`/post/${post.parentPostUuid}`);
@@ -61,7 +61,7 @@ const Post = ({
 					</div>
 				)}
 
-				<div className="flex flex-col gap-2 items-start py-4  border-b border-gray-700">
+				<div className="p-5 flex flex-col gap-2 items-start py-4  border-b border-gray-700">
 					<div className="flex items-center gap-2">
 						<div className="avatar">
 							<Link

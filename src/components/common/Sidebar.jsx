@@ -6,7 +6,7 @@ import { IoNotifications } from "react-icons/io5";
 import { FaUser, FaTimes, FaBookmark } from "react-icons/fa";
 import { BiLogOut } from "react-icons/bi";
 import { useAuthContext } from "../../context/AuthContext";
-
+import toast from "react-hot-toast";
 const Sidebar = ({ isOpen, setIsOpen }) => {
 	const { authUser, logout } = useAuthContext();
 
@@ -91,9 +91,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 						</li>
 						<li>
 							<Link
-								to={`/bookmarks`}
+								// to={`/bookmarks`}
 								className="flex gap-3 items-center hover:bg-secondary transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
-								onClick={handleLinkClick}
+								// onClick={handleLinkClick}
+								onClick={() => {
+									toast("Bookmarks feature coming soon!");
+								}}
 							>
 								<FaBookmark className="w-6 h-6" />
 								<span className="text-lg hidden lg:block">Bookmarks</span>

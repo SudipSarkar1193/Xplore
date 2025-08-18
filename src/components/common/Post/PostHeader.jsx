@@ -21,16 +21,18 @@ const PostHeader = ({
 
 	return (
 		<div className="flex gap-2 items-center">
-			<Link to={`/profile/${postOwner.username}`} className="font-bold" onClick={(e) => e.stopPropagation()}>
-				{postOwner.username}
-			</Link>
-			<span className="text-gray-700 flex gap-1 text-sm">
-				<Link to={`/profile/${postOwner.username}`} onClick={(e) => e.stopPropagation()}>
+			<div className="flex items-center gap-7 flex-1">
+				<Link
+					to={`/profile/${postOwner.username}`}
+					className="font-bold justify-self-start"
+					onClick={(e) => e.stopPropagation()}
+				>
 					@{postOwner.username}
 				</Link>
-				<span>·</span>
-				<span>{formattedDate}</span>
-			</span>
+				<span className="text-gray-700 flex text-sm justify-self-end ">
+					<span>{formattedDate}</span>
+				</span>
+			</div>
 			{isMyPost && (
 				<span className="flex justify-end flex-1 gap-2">
 					{isPendingDelete ? (

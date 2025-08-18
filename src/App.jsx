@@ -53,7 +53,7 @@ const App = () => {
 						<Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
 						{/* Main content container */}
-						<div className="flex flex-1 min-h-screen">
+						<div className="flex flex-1 min-h-screen overflow-x-hidden">
 							{/* Main content area */}
 							<main className="flex-1 min-w-0 pt-14 lg:pt-0 lg:ml-64 xl:ml-72 overflow-y-auto">
 								<Routes>

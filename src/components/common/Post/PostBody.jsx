@@ -4,6 +4,7 @@ import { FaArrowLeft, FaArrowRight, FaTimes } from "react-icons/fa";
 const PostBody = ({ content, imageUrls }) => {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+	const [touchStart, setTouchStart] = useState(0);
 
 	if (!imageUrls || imageUrls.length === 0) {
 		return (
@@ -33,6 +34,21 @@ const PostBody = ({ content, imageUrls }) => {
 		setSelectedImageIndex(
 			(prevIndex) => (prevIndex - 1 + imageUrls.length) % imageUrls.length
 		);
+	};
+
+	const handleTouchStart = (e) => {
+		setTouchStart(e.touches[0].clientX);
+	};
+
+	const handleTouchEnd = (e) => {
+		const touchEnd = e.changedTouches[0].clientX;
+		if (touchStart - touchEnd > 75) {
+			// Swiped left
+			showNextImage(e);
+		} else if (touchEnd - touchStart > 75) {
+			// Swiped right
+			showPrevImage(e);
+		}
 	};
 
 	const count = imageUrls.length;
@@ -160,6 +176,8 @@ const PostBody = ({ content, imageUrls }) => {
 				<div
 					className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80"
 					onClick={closeModal}
+					onTouchStart={handleTouchStart}
+					onTouchEnd={handleTouchEnd}
 				>
 					<button
 						className="absolute top-4 right-4 text-white text-2xl"

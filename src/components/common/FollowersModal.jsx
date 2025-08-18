@@ -77,7 +77,7 @@ export const FollowersModal = ({
 						</div>
 					)}
 					{isFetchingNextPage && (
-						<div className="flex justify-center p-4">
+						<div className="w-full flex justify-center p-4">
 							<LoadingSpinner size="md" />
 						</div>
 					)}

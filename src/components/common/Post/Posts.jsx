@@ -121,9 +121,13 @@ const Posts = ({ feedType, userUuid, isProfilePage = false }) => {
 				</div>
 			)}
 			<div ref={loadMoreRef} className="h-1 w-full "></div>
-			{isFetchingNextPage && <LoadingSpinner />}
+			{isFetchingNextPage && (
+				<div className="w-full flex justify-center p-4">
+					<LoadingSpinner />
+				</div>
+			)}
 			{!hasNextPage && !isLoading && !isRefetching && posts.length > 0 && (
-				<p className="text-center my-4">You've reached the end!</p>
+				<p className="text-center my-4"> reached the end!</p>
 			)}
 		</div>
 	);

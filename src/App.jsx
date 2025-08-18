@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from "react";
+import React, { Suspense, lazy, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import "./index.css";
@@ -7,6 +7,7 @@ import LoadingSpinner from "./components/common/LoadingSpinner";
 import { SearchUser } from "./components/common/SearchUser";
 import { useAuthContext } from "./context/AuthContext";
 import OtpVerificationPage from "./pages/auth/OtpVerificationPage";
+import { FaBars } from "react-icons/fa";
 
 const ErrorPage = lazy(() => import("./pages/error/ErrorPage"));
 const HomePage = lazy(() => import("./pages/home/HomePage"));
@@ -23,6 +24,7 @@ const PostPage = lazy(() => import("./pages/post/PostPage"));
 
 const App = () => {
 	const { authUser, isLoading } = useAuthContext();
+	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
 	const StyledLoadingSpinner = () => (
 		<div className="h-svh w-screen flex items-center justify-center">
@@ -35,12 +37,21 @@ const App = () => {
 	}
 
 	return (
-		<div className="flex  max-w-screen mx-auto overflow-x-hidden no-scrollbar overflow-y-auto">
+		<div className="flex max-w-screen mx-auto overflow-x-hidden no-scrollbar overflow-y-auto">
 			<Toaster />
 			<Suspense fallback={<StyledLoadingSpinner />}>
 				{authUser ? ( // if user is authenticated
 					<>
-						<Sidebar />
+						<div className="fixed top-4 left-4 z-30 h-10 w-10 ">
+							<button
+								onClick={() => setIsSidebarOpen(true)}
+								className="p-2 rounded-full bg-gray-800/80 backdrop-blur-sm text-white hover:bg-gray-700 transition-colors"
+								aria-label="Open sidebar"
+							>
+								<FaBars size={20} />
+							</button>
+						</div>
+						<Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
 						<main className="flex-grow min-w-0 ml-16 md:ml-20">
 							<div className="">

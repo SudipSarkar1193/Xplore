@@ -3,13 +3,12 @@ import { Link } from "react-router-dom";
 import XSvg from "../svgs/X";
 import { MdHomeFilled } from "react-icons/md";
 import { IoNotifications } from "react-icons/io5";
-import { FaUser, FaSearch, FaBars, FaTimes } from "react-icons/fa";
+import { FaUser, FaSearch, FaTimes } from "react-icons/fa";
 import { BiLogOut } from "react-icons/bi";
 import { useAuthContext } from "../../context/AuthContext";
 import { SearchUser } from "./SearchUser";
 
-const Sidebar = () => {
-	const [isOpen, setIsOpen] = useState(false);
+const Sidebar = ({ isOpen, setIsOpen }) => {
 	const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 	const { authUser, logout } = useAuthContext();
 
@@ -30,17 +29,6 @@ const Sidebar = () => {
 
 	return (
 		<>
-			{/* Hamburger Menu Icon to open the sidebar */}
-			<div className="fixed top-4 left-4 z-30">
-				<button
-					onClick={() => setIsOpen(true)}
-					className="p-2 rounded-full bg-gray-800/80 backdrop-blur-sm text-white hover:bg-gray-700 transition-colors"
-					aria-label="Open sidebar"
-				>
-					<FaBars size={20} />
-				</button>
-			</div>
-
 			{/* Backdrop Overlay */}
 			{isOpen && (
 				<div

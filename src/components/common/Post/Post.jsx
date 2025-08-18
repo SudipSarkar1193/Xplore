@@ -36,9 +36,9 @@ const Post = ({
 
 	return (
 		<>
-			<div className="overflow-y-auto overflow-x-auto no-scrollbar h-5"> </div>
+			<div className="overflow-y-auto overflow-x-auto no-scrollbar  h-5"> </div>
 			<div
-				className="overflow-y-auto overflow-x-auto no-scrollbar  cursor-pointer"
+				className="overflow-y-auto overflow-x-auto no-scrollbar cursor-pointer"
 				onClick={() => navigate(`/post/${post.postUuid}`)}
 			>
 				{isProfilePage && post && post.parentPostUuid && (
@@ -61,24 +61,28 @@ const Post = ({
 					</div>
 				)}
 
-				<div className="flex gap-2 items-start p-4 border-b border-gray-700">
-					<div className="avatar">
-						<Link
-							onClick={(e) => e.stopPropagation()}
-							to={`/profile/${postOwner?.username}`}
-						>
-							<div className="w-8 rounded-full">
-								<img src={postOwner?.profileImg || "/avatar-placeholder.png"} />
-							</div>
-						</Link>
-					</div>
-					<div className="flex flex-col flex-1">
+				<div className="flex flex-col gap-2 items-start py-4  border-b border-gray-700">
+					<div className="flex items-center gap-2">
+						<div className="avatar">
+							<Link
+								onClick={(e) => e.stopPropagation()}
+								to={`/profile/${postOwner?.username}`}
+							>
+								<div className="w-8 rounded-full">
+									<img
+										src={postOwner?.profileImg || "/avatar-placeholder.png"}
+									/>
+								</div>
+							</Link>
+						</div>
 						<PostHeader
 							postOwner={postOwner}
 							formattedDate={formattedDate}
 							isMyPost={isMyPost}
 							postUuid={post.postUuid}
 						/>
+					</div>
+					<div className="flex flex-col flex-1  w-full">
 						<PostBody content={post.content} imageUrls={post.imageUrls} />
 						<PostFooter
 							post={post}

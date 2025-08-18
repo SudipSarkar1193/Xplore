@@ -133,8 +133,8 @@ const PostBody = ({ content, imageUrls }) => {
 	};
 
 	return (
-		<div className="flex flex-col gap-3 overflow-hidden mb-3">
-			<p className="whitespace-pre-wrap open-sans-medium">{content}</p>
+		<div className="flex flex-col gap-3 overflow-hidden mb-3 ">
+			<p className="whitespace-pre-wrap open-sans-medium ">{content}</p>
 			{renderImageGallery()}
 
 			{isModalOpen && (

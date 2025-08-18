@@ -35,14 +35,15 @@ const App = () => {
 	}
 
 	return (
-		<div className="flex max-w-screen mx-auto overflow-x-hidden no-scrollbar overflow-y-auto">
+		<div className="flex  max-w-screen mx-auto overflow-x-hidden no-scrollbar overflow-y-auto">
 			<Toaster />
 			<Suspense fallback={<StyledLoadingSpinner />}>
 				{authUser ? ( // if user is authenticated
 					<>
 						<Sidebar />
+
 						<main className="flex-grow min-w-0 ml-16 md:ml-20">
-							<div className="border-x border-gray-700">
+							<div className="">
 								<Routes>
 									<Route path="/" element={<HomePage />} />
 									<Route path="/login" element={<Navigate to="/" />} />

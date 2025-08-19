@@ -10,6 +10,8 @@ import OtpVerificationPage from "./pages/auth/OtpVerificationPage";
 
 // Import the new MobileHeader component
 import MobileHeader from "./components/common/MobileHeader";
+import CreatePostModal from "./components/common/CreatePostModal";
+import FloatingActionButton from "./components/common/FloatingActionButton";
 
 const ErrorPage = lazy(() => import("./pages/error/ErrorPage"));
 const HomePage = lazy(() => import("./pages/home/HomePage"));
@@ -45,7 +47,7 @@ const App = () => {
 			<Suspense fallback={<StyledLoadingSpinner />}>
 				{authUser ? (
 					<>
-						<MobileHeader 
+						<MobileHeader
 							onMenuClick={() => setIsSidebarOpen(true)}
 							onSearchClick={() => setIsSearchModalOpen(true)}
 						/>
@@ -55,7 +57,7 @@ const App = () => {
 						{/* Main content container */}
 						<div className="flex flex-1 min-h-screen">
 							{/* Main content area */}
-							<main className="flex-1 min-w-0 pt-14 lg:pt-0 lg:ml-64 xl:ml-72 overflow-y-auto overflow-x-hidden">
+							<main className="flex-1 min-w-0 pt-14 lg:pt-0 lg:ml-64 xl:ml-72 overflow-y-auto overflow-x-hidden ">
 								<Routes>
 									<Route path="/" element={<HomePage />} />
 									<Route path="/login" element={<Navigate to="/" />} />
@@ -77,7 +79,9 @@ const App = () => {
 						</div>
 
 						{/* Search Modal for mobile */}
-						<dialog className={`modal ${isSearchModalOpen ? "modal-open" : ""}`}>
+						<dialog
+							className={`modal ${isSearchModalOpen ? "modal-open" : ""}`}
+						>
 							<div className="modal-box">
 								<button
 									onClick={() => setIsSearchModalOpen(false)}
@@ -89,6 +93,8 @@ const App = () => {
 							</div>
 						</dialog>
 
+						<CreatePostModal />
+						<FloatingActionButton />
 					</>
 				) : (
 					<div className="w-full">

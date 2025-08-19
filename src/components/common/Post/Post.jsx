@@ -54,7 +54,7 @@ const Post = ({
 								navigate(`/post/${post.parentPostUuid}`);
 							}}
 						>
-							{"replied to the post 👉"}
+							{`replied to the ${post.depth === 1 ? "post" : "comment"} 👉`}
 							<span className="ml-2 hidden md:inline hover:text-blue-500 active:text-blue-500 break-words">
 								{post.postUuid}
 							</span>

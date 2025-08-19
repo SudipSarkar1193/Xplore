@@ -51,7 +51,7 @@ const Posts = ({ feedType, userUuid, isProfilePage = false }) => {
 				if (!res.ok) {
 					throw new Error(data.message || "Failed to fetch posts");
 				}
-				console.log("Fetched posts: **************************", data);
+				console.log("Fetched posts: ", feedType, " ", data);
 
 				return data;
 			} catch (error) {

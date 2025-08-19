@@ -12,9 +12,13 @@ const Post = ({
 	parentPostUuid,
 	showInfo = false,
 	isProfilePage = false,
+	isComment = true,
 }) => {
 	const { authUser } = useAuthContext();
 	const navigate = useNavigate();
+
+	console.log("Post component data: ", post);
+	console.log("Post component data depth: ", post.depth);
 
 	const { likePost, isLiking } = useLikePost();
 
@@ -40,23 +44,25 @@ const Post = ({
 				className="cursor-pointer"
 				onClick={() => navigate(`/post/${post.postUuid}`)}
 			>
-				{isProfilePage && post && post.parentPostUuid && (
-					<div
-						className="p-1 text-sm flex items-center justify-center bg-slate-900 cursor-pointer hover:bg-slate-800 transition-colors duration-200 italic"
-						onClick={(e) => {
-							e.stopPropagation();
-							navigate(`/post/${post.parentPostUuid}`);
-						}}
-					>
-						{"replied to the post 👉"}
-						<span className="ml-2 hidden md:inline hover:text-blue-500 active:text-blue-500 break-words">
-							{post.postUuid}
-						</span>
-						<span className="ml-2 md:hidden hover:text-blue-500 active:text-blue-500 break-words">
-							{post.postUuid.slice(0, 8)}...
-						</span>
-					</div>
-				)}
+				{(isProfilePage || (!isComment && post.depth > 0)) &&
+					post &&
+					post.parentPostUuid && (
+						<div
+							className="p-1 text-sm flex items-center justify-center bg-slate-900 cursor-pointer hover:bg-slate-800 transition-colors duration-200 italic"
+							onClick={(e) => {
+								e.stopPropagation();
+								navigate(`/post/${post.parentPostUuid}`);
+							}}
+						>
+							{"replied to the post 👉"}
+							<span className="ml-2 hidden md:inline hover:text-blue-500 active:text-blue-500 break-words">
+								{post.postUuid}
+							</span>
+							<span className="ml-2 md:hidden hover:text-blue-500 active:text-blue-500 break-words">
+								{post.postUuid.slice(0, 8)}...
+							</span>
+						</div>
+					)}
 
 				<div className="flex gap-3 p-4 border-b border-gray-700">
 					{/* Avatar Column */}

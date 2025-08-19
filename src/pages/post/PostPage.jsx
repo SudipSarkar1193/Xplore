@@ -29,6 +29,7 @@ const PostPage = () => {
 				if (!res.ok) {
 					throw new Error(data.message || "Post not found");
 				}
+				console.log("postpage ->", data);
 				return data;
 			} catch (error) {
 				throw new Error(error.message);
@@ -60,7 +61,7 @@ const PostPage = () => {
 						</Link>
 						<h2 className="text-xl font-bold">Post</h2>
 					</div>
-					<Post post={post} showInfo={true} />
+					<Post post={post} showInfo={true} isComment={false} />
 					<div className="border-t border-gray-700 my-4">
 						<h3 className="text-xl font-bold px-4 py-2">Replies</h3>
 						<CreatePost parentPostUuid={post.postUuid} />

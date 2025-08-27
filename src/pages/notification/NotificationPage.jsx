@@ -2,7 +2,8 @@ import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { IoSettingsOutline } from "react-icons/io5";
-import { FaUser, FaHeart, FaComment } from "react-icons/fa";
+import { RiUserFollowFill } from "react-icons/ri";
+import { FaHeart, FaComment } from "react-icons/fa";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { backendServer } from "../../BackendServer";
 import { useAuthContext } from "../../context/AuthContext";
@@ -54,16 +55,16 @@ const NotificationPage = () => {
 	const getNotificationIcon = (type) => {
 		switch (type) {
 			case "NEW_FOLLOWER":
-				return <FaUser className="w-7 h-7 text-primary" />;
+				return <RiUserFollowFill className="w-7 h-7 text-emerald-600" />;
 			case "POST_LIKE":
 				return <FaHeart className="w-7 h-7 text-red-500" />;
 			case "POST_COMMENT":
-				return <FaComment className="w-7 h-7 text-gray-400" />;
+				return <FaComment className="w-7 h-7 text-sky-600" />;
 			default:
 				return null;
 		}
 	};
-	
+
 	return (
 		<>
 			<div className="w-full border-l border-r border-gray-700 min-h-screen overflow-y-auto">

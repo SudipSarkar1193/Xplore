@@ -64,30 +64,36 @@ const Post = ({
 						</div>
 					)}
 
-				<div className="flex gap-3 p-4 border-b border-gray-700">
-					{/* Avatar Column */}
-					<div className="avatar">
-						<Link
-							onClick={(e) => e.stopPropagation()}
-							to={`/profile/${postOwner?.username}`}
-						>
-							<div className="w-8 rounded-full">
-								<img
-									src={postOwner?.profileImg || "/avatar-placeholder.png"}
-									alt={`${postOwner.username}'s avatar`}
-								/>
-							</div>
-						</Link>
+				<div className="flex flex-col">
+					<div className="flex gap-3 px-4  border-t py-2 border-gray-700">
+						{/* Avatar Column */}
+						<div className="avatar">
+							<Link
+								onClick={(e) => e.stopPropagation()}
+								to={`/profile/${postOwner?.username}`}
+							>
+								<div className="md:w-14 md:h-14 w-10 h-10 rounded-full">
+									<img
+										src={postOwner?.profileImg || "/avatar-placeholder.png"}
+										alt={`${postOwner.username}'s avatar`}
+										className="w-full h-full rounded-full object-cover"
+									/>
+								</div>
+							</Link>
+						</div>
+
+						{/* Content Column */}
+						<div className="w-full">
+							<PostHeader
+								postOwner={postOwner}
+								formattedDate={formattedDate}
+								isMyPost={isMyPost}
+								postUuid={post.postUuid}
+							/>
+						</div>
 					</div>
 
-					{/* Content Column */}
-					<div className="flex flex-col gap-2 flex-1">
-						<PostHeader
-							postOwner={postOwner}
-							formattedDate={formattedDate}
-							isMyPost={isMyPost}
-							postUuid={post.postUuid}
-						/>
+					<div className="flex flex-col gap-1 py-2 px-6 md:px-8">
 						<PostBody content={post.content} imageUrls={post.imageUrls} />
 						<PostFooter
 							post={post}

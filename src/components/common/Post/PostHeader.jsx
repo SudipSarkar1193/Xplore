@@ -21,12 +21,12 @@ const PostHeader = ({
 	};
 
 	return (
-		<div className="flex justify-between items-center w-full">
+		<div className="flex  items-center w-full h-full justify-between">
 			{/* Left Side: Username and Date */}
-			<div className="flex items-center gap-2">
+			<div className="flex justify-between items-center w-[89%] ">
 				<Link
 					to={`/profile/${postOwner.username}`}
-					className="font-bold hover:underline"
+					className="font-bold hover:underline text-center"
 					onClick={(e) => e.stopPropagation()}
 				>
 					@{postOwner.username}

@@ -72,7 +72,7 @@ const EditProfileModal = ({ authUser }) => {
 						<div className="flex justify-center items-center">
 							<div className="avatar relative group">
 								<div className="w-24 rounded-full">
-									<img src={profilePic || "/avatar-placeholder.png"} />
+									<img src={profilePic || "/avatar-placeholder.png"} className="w-full h-full rounded-full object-cover"/>
 								</div>
 								<div
 									className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 rounded-full flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"

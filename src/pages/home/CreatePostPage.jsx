@@ -1,6 +1,6 @@
 import { CiImageOn } from "react-icons/ci";
 import { BsEmojiSmileFill } from "react-icons/bs";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { IoCloseSharp } from "react-icons/io5";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
@@ -14,12 +14,20 @@ const CreatePostPage = ({ parentPostUuid, maxImages = 10 }) => {
 	const [text, setText] = useState("");
 	const [imgs, setImgs] = useState([]);
 	const imgRef = useRef(null);
+	const textRef = useRef(null);
 
 	const { authUser, authToken } = useAuthContext();
 	const queryClient = useQueryClient();
 	const { closeModal } = useModal();
 
 	const { commentPost, isCommenting } = useComment();
+
+	useEffect(() => {
+		if (textRef.current) {
+			textRef.current.style.height = "auto";
+			textRef.current.style.height = `${textRef.current.scrollHeight}px`;
+		}
+	}, [text]);
 
 	const {
 		mutate: createPost,
@@ -126,8 +134,8 @@ const CreatePostPage = ({ parentPostUuid, maxImages = 10 }) => {
 			</div>
 			<form className="flex flex-col gap-2 w-full" onSubmit={handleSubmit}>
 				<textarea
+					ref={textRef}
 					className="textarea w-full p-0 text-lg resize-none border-none focus:outline-none  border-gray-800"
-					style={{ height: "70vh" }}
 					placeholder={
 						parentPostUuid ? "Post your reply" : "What is happening?!"
 					}

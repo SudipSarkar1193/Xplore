@@ -32,7 +32,7 @@ const NotificationPage = () => {
 	const { mutate: deleteNotifications } = useMutation({
 		mutationFn: async () => {
 			try {
-				// Assumes a new backend endpoint for deleting notifications
+				// Delete all notifications
 				const res = await fetch(`${backendServer}/api/v1/notifications`, {
 					method: "DELETE",
 					headers: { Authorization: `Bearer ${authToken}` },
@@ -73,29 +73,50 @@ const NotificationPage = () => {
 						<div tabIndex={0} role="button" className="m-1">
 							<IoSettingsOutline className="w-4 cursor-pointer" />
 						</div>
-						<ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-							<li><a onClick={deleteNotifications}>Delete all notifications</a></li>
+						<ul
+							tabIndex={0}
+							className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52"
+						>
+							<li>
+								<a onClick={deleteNotifications}>Delete all notifications</a>
+							</li>
 						</ul>
 					</div>
 				</div>
-				{isLoading && <div className="flex justify-center h-full items-center"><LoadingSpinner size="lg" /></div>}
-				{data?.length === 0 && <div className="text-center p-4 font-bold">No notifications 🤔</div>}
+				{isLoading && (
+					<div className="flex justify-center h-full items-center">
+						<LoadingSpinner size="lg" />
+					</div>
+				)}
+				{data?.length === 0 && (
+					<div className="text-center p-4 font-bold">No notifications 🤔</div>
+				)}
 				{data?.map((notification) => (
-					<div className="border-b border-gray-700" key={notification.notificationUuid}>
+					<div
+						className="border-b border-gray-700"
+						key={notification.notificationUuid}
+					>
 						<div className="flex gap-4 p-4">
 							{getNotificationIcon(notification.type)}
 							<Link to={`/profile/${notification.senderUsername}`}>
 								<div className="avatar mr-2">
 									<div className="w-8 rounded-full">
-										<img src={notification.senderProfilePictureUrl || "/avatar-placeholder.png"} />
+										<img
+											src={
+												notification.senderProfilePictureUrl ||
+												"/avatar-placeholder.png"
+											}
+										/>
 									</div>
 								</div>
 							</Link>
-							<div className="flex gap-1 items-center">
+							<div className="">
 								<Link to={`/profile/${notification.senderUsername}`}>
-									<span className="font-bold">@{notification.senderUsername}</span>
+									<span className="font-bold">
+										@{notification.senderUsername}
+									</span>
 								</Link>
-								{notification.message}
+								{" " + notification.message.split(" ").slice(1).join(" ")}
 							</div>
 						</div>
 					</div>

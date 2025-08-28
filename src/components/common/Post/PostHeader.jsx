@@ -31,7 +31,6 @@ const PostHeader = ({
 				>
 					@{postOwner.username}
 				</Link>
-				<span className="text-gray-500 text-sm">·</span>
 				<span className="text-gray-500 text-sm">{formattedDate}</span>
 			</div>
 

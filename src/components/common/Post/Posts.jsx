@@ -13,8 +13,9 @@ const Posts = ({ feedType, userUuid, isProfilePage = false }) => {
 	const getPostEndpoint = () => {
 		switch (feedType) {
 			case "forYou":
-			case "following":
 				return `${backendServer}/api/posts/feed`;
+			case "following":
+				return `${backendServer}/api/posts/following`;
 			case "posts":
 				return `${backendServer}/api/posts/user/${userUuid}`;
 			case "likes":

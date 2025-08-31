@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Posts from "../../components/common/Post/Posts";
 import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkeleton";
@@ -160,19 +160,6 @@ const ProfilePage = () => {
 		return null;
 	};
 
-	// ✅ Force component to re-render when cache updates
-	const [, forceUpdate] = useReducer((x) => x + 1, 0);
-
-	// ✅ Subscribe to cache changes
-	useEffect(() => {
-		const unsubscribe = queryClient.getQueryCache().subscribe(() => {
-			forceUpdate();
-		});
-
-		return () => {
-			unsubscribe();
-		};
-	}, [queryClient]);
 
 	// Query to fetch followers using useInfiniteQuery
 	const {

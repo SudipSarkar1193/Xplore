@@ -18,7 +18,7 @@ const EditProfileModal = ({ authUser }) => {
 	useEffect(() => {
 		if (authUser) {
 			setFormData({
-				fullName: authUser.fullName || "",
+				username: authUser.username || "",
 				bio: authUser.bio || "",
 			});
 			// Initialize the profile picture state
@@ -47,8 +47,6 @@ const EditProfileModal = ({ authUser }) => {
 	// Submit handler
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-		console.log("SHJSJS");
-		console.log("Submitting form with token:", authToken);
 		await updateProfile({ ...formData, profileImageUrl: profilePic });
 		document.getElementById(`edit_profile_modal_${authUser.uuid}`).close();
 	};
@@ -72,7 +70,10 @@ const EditProfileModal = ({ authUser }) => {
 						<div className="flex justify-center items-center">
 							<div className="avatar relative group">
 								<div className="w-24 rounded-full">
-									<img src={profilePic || "/avatar-placeholder.png"} className="w-full h-full rounded-full object-cover"/>
+									<img
+										src={profilePic || "/avatar-placeholder.png"}
+										className="w-full h-full rounded-full object-cover"
+									/>
 								</div>
 								<div
 									className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 rounded-full flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
@@ -95,8 +96,8 @@ const EditProfileModal = ({ authUser }) => {
 								type="text"
 								placeholder="Full Name"
 								className="flex-1 input border border-gray-700 rounded p-2 input-md"
-								value={formData.fullName}
-								name="fullName"
+								value={formData.username}
+								name="username"
 								onChange={handleInputChange}
 							/>
 							<textarea

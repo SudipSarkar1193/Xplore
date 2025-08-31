@@ -47,7 +47,11 @@ const EditProfileModal = ({ authUser }) => {
 	// Submit handler
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-		await updateProfile({ ...formData, profileImageUrl: profilePic });
+		await updateProfile({
+			...formData,
+			profileImageUrl: profilePic,
+			oldUsername: authUser.username,
+		});
 		document.getElementById(`edit_profile_modal_${authUser.uuid}`).close();
 	};
 

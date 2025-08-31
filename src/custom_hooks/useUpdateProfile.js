@@ -5,7 +5,7 @@ import { useAuthContext } from "../context/AuthContext";
 
 const useUpdateUserProfile = () => {
 	const queryClient = useQueryClient();
-	const { authToken } = useAuthContext();
+	const { authToken, logout } = useAuthContext();
 	console.log(
 		"useUpdateUserProfile hook initialized with authToken:",
 		authToken
@@ -19,7 +19,9 @@ const useUpdateUserProfile = () => {
 	} = useMutation({
 		mutationFn: async (formData) => {
 			try {
-				console.log("-------------->>>>>>>>:", `formdata : ${formData}`);
+				const { oldUsername, ...dataToSend } = formData;
+
+				console.log("-------------->>>>>>>>:", dataToSend);
 
 				const res = await fetch(`${backendServer}/api/users/update`, {
 					method: "PUT",
@@ -27,7 +29,7 @@ const useUpdateUserProfile = () => {
 						"Content-Type": "application/json",
 						Authorization: `Bearer ${authToken}`,
 					},
-					body: JSON.stringify(formData),
+					body: JSON.stringify(dataToSend),
 				});
 				const data = await res.json();
 				if (!res.ok) {
@@ -38,13 +40,31 @@ const useUpdateUserProfile = () => {
 				throw error;
 			}
 		},
-		onSuccess: () => {
+		onSuccess: (data, variables) => {
+			
 			toast.success("Profile updated successfully");
-			Promise.all([
-				queryClient.invalidateQueries({ queryKey: ["userProfile"] }),
-				queryClient.invalidateQueries({ queryKey: ["userAuth"] }),
-				queryClient.invalidateQueries({ queryKey: ["posts"] }),
-			]);
+
+			// if username has changed
+			if (
+				variables.oldUsername &&
+				variables.username !== variables.oldUsername
+			) {
+				toast.loading(
+					"Username changed. Logging you out to refresh session...",
+					{
+						duration: 4000,
+					}
+				);
+				setTimeout(() => {
+					logout();
+				}, 4000);
+			} else {
+				Promise.all([
+					queryClient.invalidateQueries({ queryKey: ["userProfile"] }),
+					queryClient.invalidateQueries({ queryKey: ["userAuth"] }),
+					queryClient.invalidateQueries({ queryKey: ["posts"] }),
+				]);
+			}
 		},
 		onError: (error) => {
 			toast.error(error.message);

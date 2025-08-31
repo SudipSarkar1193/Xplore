@@ -75,13 +75,14 @@ const UserListItem = ({ user }) => {
 					alt={user.username}
 					className="w-12 h-12 rounded-full object-cover border-2 border-gray-600"
 				/>
-			</Link>
+			
 			<div className="flex-1">
 				<p className="font-semibold text-white hover:underline cursor-pointer">
 					{user.username}
 				</p>
 				<p className="text-sm text-gray-400">@{user.username}</p>
 			</div>
+			</Link>
 			<div>
 				<button
 					className="btn btn-sm btn-primary rounded-full min-w-[90px]"

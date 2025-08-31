@@ -20,7 +20,7 @@ export const SearchUser = ({ show = false, isModalMode = false }) => {
 			queryKey: ["allUsers"],
 			queryFn: async ({ pageParam = 0 }) => {
 				const res = await fetch(
-					`${backendServer}/api/users/all?page=${pageParam}&size=10`,
+					`${backendServer}/api/users/all?page=${pageParam}&size=22`,
 					{
 						method: "GET",
 						headers: {
@@ -91,7 +91,9 @@ export const SearchUser = ({ show = false, isModalMode = false }) => {
 
 	const containerClasses = isModalMode
 		? "w-full"
-		: `${show ? "block" : "hidden"} lg:block lg:w-[450px] flex-shrink-0 h-screen`;
+		: `${
+				show ? "block" : "hidden"
+		  } lg:block lg:w-[450px] flex-shrink-0 h-screen`;
 
 	return (
 		<div className={containerClasses}>

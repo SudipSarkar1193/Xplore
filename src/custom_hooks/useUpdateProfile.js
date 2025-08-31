@@ -19,7 +19,7 @@ const useUpdateUserProfile = () => {
 	} = useMutation({
 		mutationFn: async (formData) => {
 			try {
-				console.log("Sending Authorization header:", `Bearer ${authToken}`);
+				console.log("-------------->>>>>>>>:", `formdata : ${formData}`);
 
 				const res = await fetch(`${backendServer}/api/users/update`, {
 					method: "PUT",

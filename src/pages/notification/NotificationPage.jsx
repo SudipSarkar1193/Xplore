@@ -2,15 +2,27 @@ import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { IoSettingsOutline } from "react-icons/io5";
-import { RiUserFollowFill } from "react-icons/ri";
+import { RiUserFollowFill, RiDeleteBin6Fill } from "react-icons/ri";
 import { FaHeart, FaComment } from "react-icons/fa";
+import { useState, useEffect } from "react";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { backendServer } from "../../BackendServer";
 import { useAuthContext } from "../../context/AuthContext";
 
 const NotificationPage = () => {
-	const { authToken } = useAuthContext();
+	const { authToken, authUser, refreshUser } = useAuthContext();
 	const queryClient = useQueryClient();
+
+	const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(
+		authUser?.emailNotificationsEnabled || true
+	);
+
+	// Update local state when authUser changes
+	useEffect(() => {
+		if (authUser?.emailNotificationsEnabled !== undefined) {
+			setEmailNotificationsEnabled(authUser.emailNotificationsEnabled);
+		}
+	}, [authUser]);
 
 	const { data, isLoading } = useQuery({
 		queryKey: ["notifications"],
@@ -52,6 +64,51 @@ const NotificationPage = () => {
 		},
 	});
 
+	// Mutation to toggle email notifications
+	const { mutate: toggleEmailNotifications, isPending: isToggling } =
+		useMutation({
+			mutationFn: async (enabled) => {
+				try {
+					const res = await fetch(
+						`${backendServer}/api/users/me/notification-settings`,
+						{
+							method: "PUT",
+							headers: {
+								Authorization: `Bearer ${authToken}`,
+								"Content-Type": "application/json",
+							},
+							body: JSON.stringify({ enabled }),
+						}
+					);
+					const data = await res.json();
+					if (!res.ok) throw new Error(data.message || "Something went wrong");
+					return data;
+				} catch (error) {
+					throw new Error(error.message);
+				}
+			},
+			onSuccess: async (data, enabled) => {
+				toast.success(
+					`Email notifications ${enabled ? "enabled" : "disabled"}`
+				);
+				setEmailNotificationsEnabled(enabled);
+
+				// Refresh the authUser data to keep it in sync
+				await refreshUser();
+			},
+			onError: (error) => {
+				toast.error(error.message);
+				// Revert the toggle state on error
+				setEmailNotificationsEnabled(!emailNotificationsEnabled);
+			},
+		});
+
+	const handleEmailToggle = () => {
+		const newState = !emailNotificationsEnabled;
+		setEmailNotificationsEnabled(newState); // Optimistic update
+		toggleEmailNotifications(newState);
+	};
+
 	const getNotificationIcon = (type) => {
 		switch (type) {
 			case "NEW_FOLLOWER":
@@ -76,10 +133,35 @@ const NotificationPage = () => {
 						</div>
 						<ul
 							tabIndex={0}
-							className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52"
+							className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-64"
 						>
 							<li>
-								<a onClick={deleteNotifications}>Delete all notifications</a>
+								<div className="flex items-center justify-between p-2">
+									<span className="text-sm">
+										<a onClick={deleteNotifications}>
+											Delete all notifications
+										</a>
+									</span>
+									<RiDeleteBin6Fill
+										className="w-5 h-5 text-red-600 cursor-pointer"
+										onClick={deleteNotifications}
+									/>
+								</div>
+							</li>
+							{/* <li className="menu-title">
+								<span>Email Settings</span>
+							</li> */}
+							<li onClick={(e) => e.stopPropagation()}>
+								<div className="flex items-center justify-between p-2">
+									<span className="text-sm">Email notifications</span>
+									<input
+										type="checkbox"
+										className="toggle toggle-sm rounded-2xl checked:bg-blue-500 checked:border-blue-500"
+										checked={emailNotificationsEnabled}
+										onChange={handleEmailToggle}
+										disabled={isToggling}
+									/>
+								</div>
 							</li>
 						</ul>
 					</div>

@@ -4,6 +4,7 @@ import Posts from "../../components/common/Post/Posts";
 import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkeleton";
 import EditProfileModal from "./EditProfileModal";
 import { FaArrowLeft } from "react-icons/fa6";
+import { FaTimes } from "react-icons/fa";
 import { IoCalendarOutline } from "react-icons/io5";
 import {
 	useQuery,
@@ -21,8 +22,17 @@ const ProfilePage = () => {
 	const [feedType, setFeedType] = useState("posts");
 	const [showFollowersModal, setShowFollowersModal] = useState(false);
 	const [showFollowingModal, setShowFollowingModal] = useState(false);
+	const [isModalOpen, setIsModalOpen] = useState(false);
 
-	
+	const openModal = (e, index) => {
+		e.stopPropagation();
+		setIsModalOpen(true);
+	};
+
+	const closeModal = () => {
+		setIsModalOpen(false);
+	};
+
 	const { username } = useParams();
 	const { authUser, authToken } = useAuthContext();
 	const { follow, isPending: isFollowing } = useFollow();
@@ -160,7 +170,6 @@ const ProfilePage = () => {
 		return null;
 	};
 
-
 	// Query to fetch followers using useInfiniteQuery
 	const {
 		data: followersData,
@@ -269,7 +278,10 @@ const ProfilePage = () => {
 								</div>
 
 								{/* User Avatar */}
-								<div className="avatar absolute -bottom-16 left-6">
+								<div
+									className="avatar absolute -bottom-16 left-6 hover:cursor-pointer"
+									onClick={openModal}
+								>
 									<div className="w-32 h-32 rounded-full ring-4 ring-gray-900 bg-gray-900">
 										<img
 											src={user.profilePictureUrl || "/avatar-placeholder.png"}
@@ -405,6 +417,26 @@ const ProfilePage = () => {
 				hasNextPage={hasNextFollowing}
 				isFetchingNextPage={isFetchingFollowing}
 			/>
+
+			{isModalOpen && (
+				<div
+					className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-85"
+					onClick={closeModal}
+					onScroll={(e) => e.stopPropagation()}
+				>
+					<button
+						className="absolute top-4 right-4 text-white text-2xl"
+						onClick={closeModal}
+					>
+						<FaTimes />
+					</button>
+					<img
+						src={user.profilePictureUrl}
+						className="max-w-full max-h-full object-contain"
+						alt="Full screen view"
+					/>
+				</div>
+			)}
 		</>
 	);
 };

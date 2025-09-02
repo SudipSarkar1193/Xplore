@@ -11,8 +11,8 @@ import useComment from "../../custom_hooks/useComment";
 
 const CreatePost = ({ parentPostUuid, maxImages = 10 }) => {
 	const [text, setText] = useState("");
-	const [imgs, setImgs] = useState([]);
-	const [imageFiles, setImageFiles] = useState([]);
+	const [imgs, setImgs] = useState([]); // State for image previews
+	const [imageFiles, setImageFiles] = useState([]); // State for actual File objects
 	const imgRef = useRef(null);
 	const textRef = useRef(null);
 
@@ -34,15 +34,13 @@ const CreatePost = ({ parentPostUuid, maxImages = 10 }) => {
 		isError,
 	} = useMutation({
 		mutationFn: async (formData) => {
-			// The mutation now accepts a FormData object
 			try {
 				const res = await fetch(`${backendServer}/api/posts`, {
 					method: "POST",
 					headers: {
-						// "Content-Type" is not set, the browser will set it to "multipart/form-data" with the correct boundary
 						Authorization: `Bearer ${authToken}`,
 					},
-					body: formData, // The body is now a FormData object
+					body: formData,
 				});
 
 				const jsonRes = await res.json();
@@ -57,6 +55,7 @@ const CreatePost = ({ parentPostUuid, maxImages = 10 }) => {
 		onSuccess: () => {
 			setText("");
 			setImgs([]);
+			setImageFiles([]);
 			toast.success("Post created successfully");
 			queryClient.invalidateQueries({ queryKey: ["posts"] });
 		},
@@ -69,7 +68,7 @@ const CreatePost = ({ parentPostUuid, maxImages = 10 }) => {
 	const handleSubmit = (e) => {
 		e.preventDefault();
 		if (isCreatingPost || isCommenting) return;
-		if (!text.trim() && imgs.length === 0) {
+		if (!text.trim() && imageFiles.length === 0) {
 			toast.error("Please enter some text or select an image");
 			return;
 		}
@@ -78,45 +77,58 @@ const CreatePost = ({ parentPostUuid, maxImages = 10 }) => {
 			return;
 		}
 
-		const imageUrls = imgs;
-
-		const formData = new FormData();
-		formData.append("content", text);
-		imageFiles.forEach((file) => {
-			formData.append("images", file);
-		});
-
+		// This is the main logic change
 		if (parentPostUuid) {
-			commentPost({ parentPostUuid, content: text, imageUrls });
+			const formData = new FormData();
+			const commentRequest = { content: text };
+			formData.append(
+				"commentRequest",
+				new Blob([JSON.stringify(commentRequest)], { type: "application/json" })
+			);
+			imageFiles.forEach((file) => {
+				formData.append("images", file);
+			});
+			commentPost({ parentPostUuid, formData });
 			setText("");
 			setImgs([]);
+			setImageFiles([]);
 		} else {
+			const formData = new FormData();
+			formData.append("content", text);
+			imageFiles.forEach((file) => {
+				formData.append("images", file);
+			});
 			createPost(formData);
 		}
 	};
 
-	// handle multiple files and update the state by adding to the array
 	const handleImgChange = (e) => {
 		const files = Array.from(e.target.files);
 		const remainingSlots = maxImages - imgs.length;
+
 		if (remainingSlots <= 0) {
 			toast.error(`You can only upload a maximum of ${maxImages} images.`);
 			return;
 		}
 
-		setImageFiles((prev) => [...prev, ...files]); // Store file objects
+		const filesToAdd = files.slice(0, remainingSlots);
 
-		files.forEach((file) => {
-			const reader = new FileReader();
-			reader.onload = () => {
-				setImgs((prev) => [...prev, reader.result]); // For preview
-			};
-			reader.readAsDataURL(file);
+		setImageFiles((prevFiles) => [...prevFiles, ...filesToAdd]);
+
+		filesToAdd.forEach((file) => {
+			if (file) {
+				const reader = new FileReader();
+				reader.onload = () => {
+					setImgs((prevImgs) => [...prevImgs, reader.result]);
+				};
+				reader.readAsDataURL(file);
+			}
 		});
 	};
 
 	const removeImage = (indexToRemove) => {
 		setImgs((prev) => prev.filter((_, index) => index !== indexToRemove));
+		setImageFiles((prev) => prev.filter((_, index) => index !== indexToRemove));
 		if (imgRef.current) {
 			imgRef.current.value = null;
 		}
@@ -148,24 +160,19 @@ const CreatePost = ({ parentPostUuid, maxImages = 10 }) => {
 				/>
 				{imgs.length > 0 && (
 					<div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-						{imgs.map(
-							(
-								imgSrc,
-								index // Map over imgs array
-							) => (
-								<div key={index} className="relative">
-									<IoCloseSharp
-										className="absolute top-1 right-1 text-white bg-gray-800 rounded-full w-5 h-5 cursor-pointer hover:bg-red-600 transition-colors"
-										onClick={() => removeImage(index)}
-									/>
-									<img
-										src={imgSrc}
-										className="w-full h-32 object-cover rounded"
-										alt={`Selected image ${index + 1}`}
-									/>
-								</div>
-							)
-						)}
+						{imgs.map((imgSrc, index) => (
+							<div key={index} className="relative">
+								<IoCloseSharp
+									className="absolute top-1 right-1 text-white bg-gray-800 rounded-full w-5 h-5 cursor-pointer hover:bg-red-600 transition-colors"
+									onClick={() => removeImage(index)}
+								/>
+								<img
+									src={imgSrc}
+									className="w-full h-32 object-cover rounded"
+									alt={`Selected image ${index + 1}`}
+								/>
+							</div>
+						))}
 					</div>
 				)}
 				<div className="flex justify-between border-t py-2 border-t-gray-700">

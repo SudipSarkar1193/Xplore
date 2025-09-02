@@ -8,17 +8,37 @@ const useComment = () => {
 	const queryClient = useQueryClient();
 
 	const { mutate: commentPost, isPending: isCommenting } = useMutation({
-		mutationFn: async ({ parentPostUuid, content, imageUrls }) => {
+		mutationFn: async ({ parentPostUuid, formData }) => {
 			try {
+				// ✅ Extract content from "commentRequest"
+				let content = "";
+				const contentBlob = formData.get("commentRequest");
+				if (contentBlob) {
+					const textData = await contentBlob.text();
+					try {
+						const parsed = JSON.parse(textData);
+						content = parsed.content || "";
+					} catch (error) {
+						console.error("Failed to parse commentRequest JSON:", error);
+					}
+				}
+
+				if (
+					(!content || content.trim() === "") &&
+					(formData.get("images") == null || !formData.get("images").size)
+				) {
+					throw new Error("Comment cannot be empty");
+				}
+
 				const res = await fetch(
 					`${backendServer}/api/posts/${parentPostUuid}/comments`,
 					{
 						method: "POST",
 						headers: {
-							"Content-Type": "application/json",
+							// Content-Type is not set, browser handles it for FormData
 							Authorization: `Bearer ${authToken}`,
 						},
-						body: JSON.stringify({ content, imageUrls }),
+						body: formData,
 					}
 				);
 				const data = await res.json();

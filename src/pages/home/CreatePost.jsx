@@ -11,7 +11,8 @@ import useComment from "../../custom_hooks/useComment";
 
 const CreatePost = ({ parentPostUuid, maxImages = 10 }) => {
 	const [text, setText] = useState("");
-	const [imgs, setImgs] = useState([]); 
+	const [imgs, setImgs] = useState([]);
+	const [imageFiles, setImageFiles] = useState([]);
 	const imgRef = useRef(null);
 	const textRef = useRef(null);
 
@@ -32,15 +33,16 @@ const CreatePost = ({ parentPostUuid, maxImages = 10 }) => {
 		isPending: isCreatingPost,
 		isError,
 	} = useMutation({
-		mutationFn: async ({ content, imageUrls }) => {
+		mutationFn: async (formData) => {
+			// The mutation now accepts a FormData object
 			try {
 				const res = await fetch(`${backendServer}/api/posts`, {
 					method: "POST",
 					headers: {
-						"Content-Type": "application/json",
+						// "Content-Type" is not set, the browser will set it to "multipart/form-data" with the correct boundary
 						Authorization: `Bearer ${authToken}`,
 					},
-					body: JSON.stringify({ content, imageUrls }),
+					body: formData, // The body is now a FormData object
 				});
 
 				const jsonRes = await res.json();
@@ -67,7 +69,7 @@ const CreatePost = ({ parentPostUuid, maxImages = 10 }) => {
 	const handleSubmit = (e) => {
 		e.preventDefault();
 		if (isCreatingPost || isCommenting) return;
-		if (!text.trim() && imgs.length === 0) { 
+		if (!text.trim() && imgs.length === 0) {
 			toast.error("Please enter some text or select an image");
 			return;
 		}
@@ -76,14 +78,20 @@ const CreatePost = ({ parentPostUuid, maxImages = 10 }) => {
 			return;
 		}
 
-		const imageUrls = imgs; 
+		const imageUrls = imgs;
+
+		const formData = new FormData();
+		formData.append("content", text);
+		imageFiles.forEach((file) => {
+			formData.append("images", file);
+		});
 
 		if (parentPostUuid) {
 			commentPost({ parentPostUuid, content: text, imageUrls });
 			setText("");
 			setImgs([]);
 		} else {
-			createPost({ content: text, imageUrls });
+			createPost(formData);
 		}
 	};
 
@@ -96,21 +104,19 @@ const CreatePost = ({ parentPostUuid, maxImages = 10 }) => {
 			return;
 		}
 
-		const filesToAdd = files.slice(0, remainingSlots);
+		setImageFiles((prev) => [...prev, ...files]); // Store file objects
 
-		filesToAdd.forEach((file) => {
-			if (file) {
-				const reader = new FileReader();
-				reader.onload = () => {
-					setImgs((prevImgs) => [...prevImgs, reader.result]); 
-				};
-				reader.readAsDataURL(file);
-			}
+		files.forEach((file) => {
+			const reader = new FileReader();
+			reader.onload = () => {
+				setImgs((prev) => [...prev, reader.result]); // For preview
+			};
+			reader.readAsDataURL(file);
 		});
 	};
 
 	const removeImage = (indexToRemove) => {
-		setImgs((prev) => prev.filter((_, index) => index !== indexToRemove)); 
+		setImgs((prev) => prev.filter((_, index) => index !== indexToRemove));
 		if (imgRef.current) {
 			imgRef.current.value = null;
 		}
@@ -142,19 +148,24 @@ const CreatePost = ({ parentPostUuid, maxImages = 10 }) => {
 				/>
 				{imgs.length > 0 && (
 					<div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-						{imgs.map((imgSrc, index) => ( // Map over imgs array
-							<div key={index} className="relative">
-								<IoCloseSharp
-									className="absolute top-1 right-1 text-white bg-gray-800 rounded-full w-5 h-5 cursor-pointer hover:bg-red-600 transition-colors"
-									onClick={() => removeImage(index)}
-								/>
-								<img
-									src={imgSrc}
-									className="w-full h-32 object-cover rounded"
-									alt={`Selected image ${index + 1}`}
-								/>
-							</div>
-						))}
+						{imgs.map(
+							(
+								imgSrc,
+								index // Map over imgs array
+							) => (
+								<div key={index} className="relative">
+									<IoCloseSharp
+										className="absolute top-1 right-1 text-white bg-gray-800 rounded-full w-5 h-5 cursor-pointer hover:bg-red-600 transition-colors"
+										onClick={() => removeImage(index)}
+									/>
+									<img
+										src={imgSrc}
+										className="w-full h-32 object-cover rounded"
+										alt={`Selected image ${index + 1}`}
+									/>
+								</div>
+							)
+						)}
 					</div>
 				)}
 				<div className="flex justify-between border-t py-2 border-t-gray-700">

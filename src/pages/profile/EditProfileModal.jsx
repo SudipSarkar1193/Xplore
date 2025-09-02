@@ -8,12 +8,14 @@ const EditProfileModal = ({ authUser }) => {
 		fullName: "",
 		bio: "",
 	});
-	// Add state for the profile picture & a ref for the file input
+	// State for profile picture
 	const [profilePic, setProfilePic] = useState(null);
+	const [profileImageFile, setProfileImageFile] = useState(null);
 	const fileInputRef = useRef(null);
 
-	const { updateProfile, isUpdatingProfile } = useUpdateUserProfile();
 	const { authToken } = useAuthContext();
+
+	const { updateProfile, isUpdatingProfile } = useUpdateUserProfile();
 
 	useEffect(() => {
 		if (authUser) {
@@ -21,7 +23,6 @@ const EditProfileModal = ({ authUser }) => {
 				username: authUser.username || "",
 				bio: authUser.bio || "",
 			});
-			// Initialize the profile picture state
 			setProfilePic(authUser.profilePictureUrl);
 		}
 	}, [authUser]);
@@ -36,9 +37,10 @@ const EditProfileModal = ({ authUser }) => {
 	const handleImgChange = (e) => {
 		const file = e.target.files[0];
 		if (file) {
+			setProfileImageFile(file); // Store the file object
 			const reader = new FileReader();
 			reader.onload = () => {
-				setProfilePic(reader.result); // Update state with Base64 string
+				setProfilePic(reader.result); // For preview
 			};
 			reader.readAsDataURL(file);
 		}
@@ -47,10 +49,20 @@ const EditProfileModal = ({ authUser }) => {
 	// Submit handler
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+		const formDataObj = new FormData();
+		// Append the DTO as a JSON string Blob
+		formDataObj.append(
+			"userProfileUpdateDTO",
+			new Blob([JSON.stringify(formData)], { type: "application/json" })
+		);
+		if (profileImageFile) {
+			formDataObj.append("profileImage", profileImageFile);
+		}
+
 		await updateProfile({
-			...formData,
-			profileImageUrl: profilePic,
+			formData: formDataObj,
 			oldUsername: authUser.username,
+			newUsername: formData.username,
 		});
 		document.getElementById(`edit_profile_modal_${authUser.uuid}`).close();
 	};

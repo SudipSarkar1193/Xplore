@@ -12,7 +12,8 @@ import { useModal } from "../../context/ModalContext";
 
 const CreatePostPage = ({ parentPostUuid, maxImages = 10 }) => {
 	const [text, setText] = useState("");
-	const [imgs, setImgs] = useState([]);
+	const [imgs, setImgs] = useState([]); // For previews
+	const [imageFiles, setImageFiles] = useState([]); // For upload
 	const imgRef = useRef(null);
 	const textRef = useRef(null);
 
@@ -34,15 +35,14 @@ const CreatePostPage = ({ parentPostUuid, maxImages = 10 }) => {
 		isPending: isCreatingPost,
 		isError,
 	} = useMutation({
-		mutationFn: async ({ content, imageUrls }) => {
+		mutationFn: async (formData) => {
 			try {
 				const res = await fetch(`${backendServer}/api/posts`, {
 					method: "POST",
 					headers: {
-						"Content-Type": "application/json",
 						Authorization: `Bearer ${authToken}`,
 					},
-					body: JSON.stringify({ content, imageUrls }),
+					body: formData,
 				});
 
 				const jsonRes = await res.json();
@@ -57,6 +57,7 @@ const CreatePostPage = ({ parentPostUuid, maxImages = 10 }) => {
 		onSuccess: () => {
 			setText("");
 			setImgs([]);
+			setImageFiles([]); // Clear file state
 			toast.success("Post created successfully");
 			queryClient.invalidateQueries({ queryKey: ["posts"] });
 			closeModal();
@@ -70,7 +71,7 @@ const CreatePostPage = ({ parentPostUuid, maxImages = 10 }) => {
 	const handleSubmit = (e) => {
 		e.preventDefault();
 		if (isCreatingPost || isCommenting) return;
-		if (!text.trim() && imgs.length === 0) {
+		if (!text.trim() && imageFiles.length === 0) {
 			toast.error("Please enter some text or select an image");
 			return;
 		}
@@ -79,26 +80,35 @@ const CreatePostPage = ({ parentPostUuid, maxImages = 10 }) => {
 			return;
 		}
 
-		const imageUrls = imgs;
+		const formData = new FormData();
+		formData.append("content", text);
+		imageFiles.forEach((file) => {
+			formData.append("images", file);
+		});
 
 		if (parentPostUuid) {
-			commentPost({ parentPostUuid, content: text, imageUrls });
-			setText("");
+			// This would also need to be updated to use FormData
+			commentPost({ parentPostUuid, formData });
+            setText("");
 			setImgs([]);
+			setImageFiles([]);
 		} else {
-			createPost({ content: text, imageUrls });
+			createPost(formData);
 		}
 	};
 
 	const handleImgChange = (e) => {
 		const files = Array.from(e.target.files);
 		const remainingSlots = maxImages - imgs.length;
+
 		if (remainingSlots <= 0) {
 			toast.error(`You can only upload a maximum of ${maxImages} images.`);
 			return;
 		}
 
 		const filesToAdd = files.slice(0, remainingSlots);
+
+        setImageFiles((prevFiles) => [...prevFiles, ...filesToAdd]);
 
 		filesToAdd.forEach((file) => {
 			if (file) {
@@ -113,6 +123,7 @@ const CreatePostPage = ({ parentPostUuid, maxImages = 10 }) => {
 
 	const removeImage = (indexToRemove) => {
 		setImgs((prev) => prev.filter((_, index) => index !== indexToRemove));
+        setImageFiles((prev) => prev.filter((_, index) => index !== indexToRemove));
 		if (imgRef.current) {
 			imgRef.current.value = null;
 		}

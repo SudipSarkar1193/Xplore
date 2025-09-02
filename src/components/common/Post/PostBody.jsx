@@ -1,10 +1,31 @@
 import React, { useState } from "react";
 import { FaArrowLeft, FaArrowRight, FaTimes } from "react-icons/fa";
 
-const PostBody = ({ content, imageUrls }) => {
+const PostBody = ({ content, imageUrls, videoUrl, postType }) => {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 	const [touchStart, setTouchStart] = useState(0);
+
+	if (postType === "VIDEO_SHORT") {
+		return (
+			<div className="flex flex-col gap-3 overflow-hidden mb-3">
+				<p className="whitespace-pre-wrap open-sans-medium">{content}</p>
+				{videoUrl && (
+					<div className="w-full rounded-lg border border-gray-700 overflow-hidden">
+						<video
+							src={videoUrl}
+							controls
+							loop
+							autoPlay
+							muted
+							className="w-full h-full md:max-h-[600px] object-contain"
+							style={{ minHeight: "200px" }}
+						/>
+					</div>
+				)}
+			</div>
+		);
+	}
 
 	if (!imageUrls || imageUrls.length === 0) {
 		return (

@@ -94,7 +94,12 @@ const Post = ({
 					</div>
 
 					<div className="flex flex-col gap-1 py-2 px-6 md:px-8">
-						<PostBody content={post.content} imageUrls={post.imageUrls} />
+						<PostBody
+							content={post.content}
+							imageUrls={post.imageUrls}
+							videoUrl={post.videoUrl}
+							postType={post.postType}
+						/>
 						<PostFooter
 							post={post}
 							isLiking={isLiking}

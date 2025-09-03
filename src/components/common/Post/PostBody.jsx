@@ -1,25 +1,36 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { FaArrowLeft, FaArrowRight, FaTimes } from "react-icons/fa";
+import { useVideoObserver } from "../../../context/VideoObserverContext";
 
 const PostBody = ({ content, imageUrls, videoUrl, postType }) => {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 	const [touchStart, setTouchStart] = useState(0);
 
+	const videoRef = useRef(null);
+	useVideoObserver(videoRef);
+
 	if (postType === "VIDEO_SHORT") {
 		return (
 			<div className="flex flex-col gap-3 overflow-hidden mb-3">
 				<p className="whitespace-pre-wrap open-sans-medium">{content}</p>
 				{videoUrl && (
-					<div className="w-full rounded-lg border border-gray-700 overflow-hidden">
+					<div
+						className="w-full rounded-lg border border-gray-700 overflow-hidden"
+						onClick={(e) => e.stopPropagation()}
+					>
 						<video
+							ref={videoRef}
 							src={videoUrl}
 							controls
 							loop
-							autoPlay
-							muted
+							// muted
+							playsInline
+							preload="metadata" // Helps with loading
 							className="w-full h-full md:max-h-[600px] object-contain"
 							style={{ minHeight: "200px" }}
+							onLoadedData={() => console.log("Video loaded:", videoUrl)}
+							onError={(e) => console.error("Video error:", e)}
 						/>
 					</div>
 				)}
@@ -41,7 +52,8 @@ const PostBody = ({ content, imageUrls, videoUrl, postType }) => {
 		setIsModalOpen(true);
 	};
 
-	const closeModal = () => {
+	const closeModal = (e) => {
+		e.stopPropagation();
 		setIsModalOpen(false);
 	};
 
@@ -191,7 +203,7 @@ const PostBody = ({ content, imageUrls, videoUrl, postType }) => {
 	return (
 		<div className="flex flex-col gap-3 overflow-hidden mb-3">
 			<p className="whitespace-pre-wrap open-sans-medium">{content}</p>
-			{renderImageGallery()}
+			<div onClick={(e) => e.stopPropagation()}>{renderImageGallery()}</div>
 
 			{isModalOpen && (
 				<div

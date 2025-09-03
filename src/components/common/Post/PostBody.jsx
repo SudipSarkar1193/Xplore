@@ -16,8 +16,9 @@ const PostBody = ({ content, imageUrls, videoUrl, postType }) => {
 				<p className="whitespace-pre-wrap open-sans-medium">{content}</p>
 				{videoUrl && (
 					<div
-						className="w-full rounded-lg border border-gray-700 overflow-hidden"
+						className="w-full rounded-lg border border-gray-700 overflow-hidden flex items-center justify-center bg-black cursor-pointer"
 						onClick={(e) => e.stopPropagation()}
+						style={{ minHeight: "76vh" }}
 					>
 						<video
 							ref={videoRef}
@@ -28,7 +29,6 @@ const PostBody = ({ content, imageUrls, videoUrl, postType }) => {
 							playsInline
 							preload="metadata" // Helps with loading
 							className="w-full h-full md:max-h-[600px] object-contain"
-							style={{ minHeight: "200px" }}
 							onLoadedData={() => console.log("Video loaded:", videoUrl)}
 							onError={(e) => console.error("Video error:", e)}
 						/>

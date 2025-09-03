@@ -54,6 +54,7 @@ const ProfilePage = () => {
 				}
 			);
 			const data = await res.json();
+			// console.log("Fetched user profile:", data);
 			if (!res.ok) throw new Error(data.message || "User not found");
 			return data;
 		},
@@ -331,7 +332,7 @@ const ProfilePage = () => {
 								<div className="flex gap-2 items-center text-gray-400">
 									<IoCalendarOutline className="w-4 h-4" />
 									<span className="text-sm">
-										Joined {formatMemberSinceDate(user.createdAt)}
+										{formatMemberSinceDate(user.createdAt)}
 									</span>
 								</div>
 

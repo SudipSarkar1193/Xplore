@@ -87,24 +87,24 @@ const PostModals = ({ post, maxImages = 15, parentPostUuid }) => {
 		},
 		onSuccess: () => {
 			toast.success("Post deleted successfully");
-			
+
 			const parentId = parentPostUuid || post.parentPostUuid;
 
 			console.log("", "parentId:", parentId);
 			console.log("", "parentPostUuid:", parentPostUuid);
 			console.log("", "post.parentPostUuid:", post.parentPostUuid);
 
-		if (parentId) {
-			// This was a comment. Invalidate the parent post to refetch the comment list.
-			queryClient.invalidateQueries({ queryKey: ["post", parentId] });
-			// Navigate to the parent post's page.
-			navigate(`/post/${parentId}`);
-		} else {
-			// This was a top-level post. Invalidate the main feed.
-			queryClient.invalidateQueries({ queryKey: ["posts"] });
-			// Navigate to the home page.
-			navigate("/");
-		}
+			if (parentId) {
+				// This was a comment. Invalidate the parent post to refetch the comment list.
+				queryClient.invalidateQueries({ queryKey: ["post", parentId] });
+				// Navigate to the parent post's page.
+				navigate(`/post/${parentId}`);
+			} else {
+				// This was a top-level post. Invalidate the main feed.
+				queryClient.invalidateQueries({ queryKey: ["posts"] });
+				// Navigate to the home page.
+				navigate("/");
+			}
 
 			queryClient.invalidateQueries({ queryKey: ["post", post.postUuid] });
 
@@ -182,45 +182,47 @@ const PostModals = ({ post, maxImages = 15, parentPostUuid }) => {
 							/>
 						</div>
 
-						<div className="form-control mb-4">
-							<label className="label">
-								<span className="label-text">Images</span>
-							</label>
-							<div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2">
-								{editImages.map((image, index) => (
-									<div key={index} className="relative">
-										<img
-											src={image}
-											className="w-full h-32 object-cover rounded border"
-											alt={`Edit preview ${index + 1}`}
-										/>
-										<button
-											type="button"
-											className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
-											onClick={(e) => {
-												stopPropagation(e);
-												removeImage(index);
-											}}
-										>
-											<FaTimes />
-										</button>
-									</div>
-								))}
-								{editImages.length < maxImages && (
-									<label className="w-full h-32 border-2 border-dashed border-gray-400 rounded flex items-center justify-center cursor-pointer hover:border-gray-600">
-										<input
-											type="file"
-											multiple
-											accept="image/*"
-											className="hidden"
-											onChange={handleImageChange}
-											ref={editImageInputRef}
-										/>
-										<FaPlus className="text-gray-400 text-2xl" />
-									</label>
-								)}
+						{post.postType !== "VIDEO_SHORT" && (
+							<div className="form-control mb-4">
+								<label className="label">
+									<span className="label-text">Images</span>
+								</label>
+								<div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2">
+									{editImages.map((image, index) => (
+										<div key={index} className="relative">
+											<img
+												src={image}
+												className="w-full h-32 object-cover rounded border"
+												alt={`Edit preview ${index + 1}`}
+											/>
+											<button
+												type="button"
+												className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+												onClick={(e) => {
+													stopPropagation(e);
+													removeImage(index);
+												}}
+											>
+												<FaTimes />
+											</button>
+										</div>
+									))}
+									{editImages.length < maxImages && (
+										<label className="w-full h-32 border-2 border-dashed border-gray-400 rounded flex items-center justify-center cursor-pointer hover:border-gray-600">
+											<input
+												type="file"
+												multiple
+												accept="image/*"
+												className="hidden"
+												onChange={handleImageChange}
+												ref={editImageInputRef}
+											/>
+											<FaPlus className="text-gray-400 text-2xl" />
+										</label>
+									)}
+								</div>
 							</div>
-						</div>
+						)}
 						<div className="modal-action">
 							<button
 								type="submit"

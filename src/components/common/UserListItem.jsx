@@ -68,20 +68,24 @@ const UserListItem = ({ user }) => {
 	const isFollowing = getCurrentFollowStatus();
 
 	return (
-		<div className="p-4 hover:bg-gray-800 transition-colors flex items-center gap-3">
-			<Link to={`/profile/${user.username}`}>
+		<div className="p-4 hover:bg-gray-800 transition-colors flex items-center  gap-3">
+			<Link
+				to={`/profile/${user.username}`}
+				className="flex gap-2 flex-1 items-center justify-self-start"
+			>
 				<img
 					src={user.profilePictureUrl || "/avatar-placeholder.png"}
 					alt={user.username}
 					className="w-12 h-12 rounded-full object-cover border-2 border-gray-600"
 				/>
-			
-			<div className="flex-1">
-				<p className="font-semibold text-white hover:underline cursor-pointer">
-					{user.username}
-				</p>
-				<p className="text-sm text-gray-400">@{user.username}</p>
-			</div>
+
+				<div className="flex-1">
+					<p className="font-semibold italic text-white hover:underline cursor-pointer">
+						{user.username.length > 10
+							? user.username.slice(0, 10) + "..."
+							: user.username}
+					</p>
+				</div>
 			</Link>
 			<div>
 				<button

@@ -4,6 +4,8 @@ import XSvg from "../svgs/X";
 import { MdHomeFilled } from "react-icons/md";
 import { IoNotifications } from "react-icons/io5";
 import { FaUser, FaTimes, FaBookmark } from "react-icons/fa";
+import { FiVideo } from "react-icons/fi";
+import { RiUserFollowFill } from "react-icons/ri"; // Import new icon
 import { BiLogOut } from "react-icons/bi";
 import { useAuthContext } from "../../context/AuthContext";
 import toast from "react-hot-toast";
@@ -58,18 +60,44 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 				</div>
 
 				{/* Navigation Links */}
-				<nav className="flex-grow p-4">
-					<ul className="flex flex-col gap-3">
+				<nav className="flex-grow p-4 ">
+					<ul className="flex flex-col justify-start gap-3">
 						<li>
 							<Link
 								to="/"
-								className="flex gap-3 items-center hover:bg-secondary transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+								state={{ feedType: "forYou" }}
+								className="flex gap-2 items-center hover:bg-secondary transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer "
 								onClick={handleLinkClick}
 							>
-								<MdHomeFilled className="w-8 h-8" />
+								<MdHomeFilled className="w-6 h-6" />
 								<span className="text-lg">Home</span>
 							</Link>
 						</li>
+
+						<li>
+							<Link
+								to="/"
+								state={{ feedType: "following" }}
+								className="flex gap-3 items-center hover:bg-secondary transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+								onClick={handleLinkClick}
+							>
+								<RiUserFollowFill className="w-6 h-6" />
+								<span className="text-lg">Following</span>
+							</Link>
+						</li>
+
+						<li>
+							<Link
+								to="/"
+								state={{ feedType: "shorts" }}
+								className="flex gap-3 items-center hover:bg-secondary transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+								onClick={handleLinkClick}
+							>
+								<FiVideo className="w-6 h-6" />
+								<span className="text-lg">Shorts</span>
+							</Link>
+						</li>
+
 						<li>
 							<Link
 								to="/notifications"
@@ -92,9 +120,11 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 						</li>
 						<li>
 							<Link
+								to="#"
 								className="flex gap-3 items-center hover:bg-secondary transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
 								onClick={() => {
 									toast("Bookmarks feature coming soon!");
+									handleLinkClick();
 								}}
 							>
 								<FaBookmark className="w-6 h-6" />

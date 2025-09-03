@@ -16,6 +16,8 @@ const Posts = ({ feedType, userUuid, isProfilePage = false }) => {
 				return `${backendServer}/api/posts/feed`;
 			case "following":
 				return `${backendServer}/api/posts/following`;
+			case "shorts":
+				return `${backendServer}/api/posts/shorts`;
 			case "posts":
 				return `${backendServer}/api/posts/user/${userUuid}`;
 			case "likes":

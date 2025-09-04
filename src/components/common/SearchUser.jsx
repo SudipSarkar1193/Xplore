@@ -7,7 +7,11 @@ import LoadingSpinner from "./LoadingSpinner";
 import RightPanel from "./RightPanel";
 import UserListItem from "./UserListItem";
 
-export const SearchUser = ({ show = false, isModalMode = false }) => {
+export const SearchUser = ({
+	show = false,
+	isModalMode = false,
+	setIsSearchModalOpen,
+}) => {
 	const [search, setSearch] = useState("");
 	const { authToken } = useAuthContext();
 	const loadMoreRef = useRef(null);
@@ -123,7 +127,11 @@ export const SearchUser = ({ show = false, isModalMode = false }) => {
 
 							{search &&
 								filteredUsers.map((user) => (
-									<UserListItem key={user.uuid} user={user} />
+									<UserListItem
+										key={user.uuid}
+										user={user}
+										setIsSearchModalOpen={setIsSearchModalOpen}
+									/>
 								))}
 
 							{search &&

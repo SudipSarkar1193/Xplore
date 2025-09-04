@@ -89,7 +89,7 @@ const App = () => {
 								>
 									✕
 								</button>
-								<SearchUser isModalMode={true} />
+								<SearchUser isModalMode={true} setIsSearchModalOpen={setIsSearchModalOpen} />
 							</div>
 						</dialog>
 

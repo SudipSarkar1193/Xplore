@@ -4,7 +4,7 @@ import useFollow from "../../custom_hooks/useFollow";
 import LoadingSpinner from "./LoadingSpinner";
 import { Link } from "react-router-dom";
 
-const UserListItem = ({ user }) => {
+const UserListItem = ({ user, setIsSearchModalOpen }) => {
 	const { follow, isPending } = useFollow();
 	const queryClient = useQueryClient();
 
@@ -72,6 +72,7 @@ const UserListItem = ({ user }) => {
 			<Link
 				to={`/profile/${user.username}`}
 				className="flex gap-2 flex-1 items-center justify-self-start"
+				onClick={() => setIsSearchModalOpen(false)}
 			>
 				<img
 					src={user.profilePictureUrl || "/avatar-placeholder.png"}

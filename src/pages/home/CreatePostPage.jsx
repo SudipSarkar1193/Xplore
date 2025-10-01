@@ -55,69 +55,68 @@ const CreatePostPage = ({ mode, parentPostUuid }) => {
 	});
 
 	const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (isPosting) return;
+		e.preventDefault();
+		if (isPosting) return;
 
-    // 1. Validate
-    const isContentEmpty = !text.trim();
-    const isMediaEmpty = mode === "post" ? imageFiles.length === 0 : !videoFile;
+		// 1. Validate
+		const isContentEmpty = !text.trim();
+		const isMediaEmpty = mode === "post" ? imageFiles.length === 0 : !videoFile;
 
-    if (isContentEmpty && isMediaEmpty) {
-        toast.error("Please add content, an image, or a video.");
-        return;
-    }
+		if (isContentEmpty && isMediaEmpty) {
+			toast.error("Please add content, an image, or a video.");
+			return;
+		}
 
-    // 2. loader with msg
-    const toastId = toast.loading("Posting your short..."); // Show initial msg
+		// 2. loader with msg
+		const toastId = toast.loading("Posting your short..."); // Show initial msg
 
-    // After 3 seconds, update the toast to show only the spinner
-    setTimeout(() => {
-        toast.update(toastId, { render: null, isLoading: true });
-    }, 3000);
+		// After 3 seconds, update the toast to show only the spinner
+		setTimeout(() => {
+			toast.update(toastId, { render: null, isLoading: true });
+		}, 3000);
 
+		try {
+			// 3. Build FormData and call API to create post
+			const formData = new FormData();
+			formData.append("content", text);
 
-    try {
-        // 3. Build FormData and call API to create post
-        const formData = new FormData();
-        formData.append("content", text);
+			if (mode === "short" && videoFile) {
+				formData.append("video", videoFile);
+			} else if (mode === "post" && imageFiles.length > 0) {
+				imageFiles.forEach((file) => formData.append("images", file));
+			}
 
-        if (mode === "short" && videoFile) {
-            formData.append("video", videoFile);
-        } else if (mode === "post" && imageFiles.length > 0) {
-            imageFiles.forEach((file) => formData.append("images", file));
-        }
+			await createPost(formData);
 
-        await createPost(formData);
-        
-        // 4. On success, show final message and close the loader
-        toast.update(toastId, { 
-            render: "Posted successfully!", 
-            type: "success", 
-            isLoading: false, 
-            autoClose: 4000 // Automatically close after 4 seconds
-        });
+			// 4. On success, show final message and close the loader
+			toast.update(toastId, {
+				render: "Posted successfully!",
+				type: "success",
+				isLoading: false,
+				autoClose: 4000, // Automatically close after 4 seconds
+			});
 
-        // 5. Clean up state on success
-        if (mode === "short") {
-            if (videoPreviewUrl) {
-                URL.revokeObjectURL(videoPreviewUrl);
-                setVideoPreviewUrl(null);
-            }
-            setVideoFile(null);
-        }
-        closeModal();
-
-    } catch (error) {
-        // 6. On error, show final message and close the loader
-        console.error("Failed to create post:", error);
-        toast.update(toastId, { 
-            render: "Failed to post. Please try again.", 
-            type: "error", 
-            isLoading: false, 
-            autoClose: 2000
-        });
-    }
-};
+			// 5. Clean up state on success
+			if (mode === "short") {
+				if (videoPreviewUrl) {
+					URL.revokeObjectURL(videoPreviewUrl);
+					setVideoPreviewUrl(null);
+				}
+				setVideoFile(null);
+			}
+			closeModal();
+		} catch (error) {
+			// 6. On error, show final message and close the loader
+			console.error("Failed to create post:", error);
+			toast.update(toastId, {
+				render: "Failed to post. Please try again.",
+				type: "error",
+				isLoading: false,
+				autoClose: 2000,
+			});
+			toast.dismiss(toastId);
+		}
+	};
 
 	const handleFileChange = (e) => {
 		if (mode === "post") {

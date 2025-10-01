@@ -85,7 +85,7 @@ const OtpVerificationPage = () => {
 				body: JSON.stringify({ email, otp: otpString }),
 			});
             const jsonRes = await response.json()
-			if (!response.ok) throw new Error(jsonRes.error);
+			if (!response.ok) throw new Error(jsonRes.message);
 			return jsonRes;
 		},
 		onSuccess: () => {

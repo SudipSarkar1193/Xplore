@@ -72,7 +72,10 @@ const UserListItem = ({ user, setIsSearchModalOpen }) => {
 			<Link
 				to={`/profile/${user.username}`}
 				className="flex gap-2 flex-1 items-center justify-self-start"
-				onClick={() => setIsSearchModalOpen(false)}
+				onClick={(e) => {
+					e.preventDefault();
+					setIsSearchModalOpen(false);
+				}}
 			>
 				<img
 					src={user.profilePictureUrl || "/avatar-placeholder.png"}

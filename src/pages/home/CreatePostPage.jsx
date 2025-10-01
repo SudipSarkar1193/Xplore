@@ -24,7 +24,7 @@ const CreatePostPage = ({ mode, parentPostUuid }) => {
 	const { closeModal } = useModal();
 
 	const maxImages = 10;
-	const maxVideoSizeMB = 150;
+	const maxVideoSizeMB = 250; 
 
 	useEffect(() => {
 		// Auto-resize textarea

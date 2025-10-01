@@ -15,6 +15,7 @@ const CreatePostPage = ({ mode, parentPostUuid }) => {
 	const [imageFiles, setImageFiles] = useState([]);
 	const [videoFile, setVideoFile] = useState(null);
 	const [videoPreviewUrl, setVideoPreviewUrl] = useState(null);
+	const [videoUploadMessage, setVideoUploadMessage] = useState("");
 
 	const fileInputRef = useRef(null);
 	const textRef = useRef(null);
@@ -24,7 +25,7 @@ const CreatePostPage = ({ mode, parentPostUuid }) => {
 	const { closeModal } = useModal();
 
 	const maxImages = 10;
-	const maxVideoSizeMB = 250; 
+	const maxVideoSizeMB = 250;
 
 	useEffect(() => {
 		// Auto-resize textarea
@@ -53,29 +54,70 @@ const CreatePostPage = ({ mode, parentPostUuid }) => {
 		onError: (error) => toast.error(error.message),
 	});
 
-	const handleSubmit = (e) => {
-		e.preventDefault();
-		if (isPosting) return;
+	const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (isPosting) return;
 
-		const isContentEmpty = !text.trim();
-		const isMediaEmpty = mode === "post" ? imageFiles.length === 0 : !videoFile;
+    // 1. Validate
+    const isContentEmpty = !text.trim();
+    const isMediaEmpty = mode === "post" ? imageFiles.length === 0 : !videoFile;
 
-		if (isContentEmpty && isMediaEmpty) {
-			toast.error("Please add content, an image, or a video.");
-			return;
-		}
+    if (isContentEmpty && isMediaEmpty) {
+        toast.error("Please add content, an image, or a video.");
+        return;
+    }
 
-		const formData = new FormData();
-		formData.append("content", text);
+    // 2. loader with msg
+    const toastId = toast.loading("Posting your short..."); // Show initial msg
 
-		if (mode === "short" && videoFile) {
-			formData.append("video", videoFile);
-		} else if (mode === "post" && imageFiles.length > 0) {
-			imageFiles.forEach((file) => formData.append("images", file));
-		}
+    // After 3 seconds, update the toast to show only the spinner
+    setTimeout(() => {
+        toast.update(toastId, { render: null, isLoading: true });
+    }, 3000);
 
-		createPost(formData);
-	};
+
+    try {
+        // 3. Build FormData and call API to create post
+        const formData = new FormData();
+        formData.append("content", text);
+
+        if (mode === "short" && videoFile) {
+            formData.append("video", videoFile);
+        } else if (mode === "post" && imageFiles.length > 0) {
+            imageFiles.forEach((file) => formData.append("images", file));
+        }
+
+        await createPost(formData);
+        
+        // 4. On success, show final message and close the loader
+        toast.update(toastId, { 
+            render: "Posted successfully!", 
+            type: "success", 
+            isLoading: false, 
+            autoClose: 4000 // Automatically close after 4 seconds
+        });
+
+        // 5. Clean up state on success
+        if (mode === "short") {
+            if (videoPreviewUrl) {
+                URL.revokeObjectURL(videoPreviewUrl);
+                setVideoPreviewUrl(null);
+            }
+            setVideoFile(null);
+        }
+        closeModal();
+
+    } catch (error) {
+        // 6. On error, show final message and close the loader
+        console.error("Failed to create post:", error);
+        toast.update(toastId, { 
+            render: "Failed to post. Please try again.", 
+            type: "error", 
+            isLoading: false, 
+            autoClose: 2000
+        });
+    }
+};
 
 	const handleFileChange = (e) => {
 		if (mode === "post") {
@@ -140,13 +182,15 @@ const CreatePostPage = ({ mode, parentPostUuid }) => {
 				<textarea
 					ref={textRef}
 					className="textarea w-full p-0 text-lg resize-none border-none focus:outline-none bg-transparent"
-					placeholder={mode === "short" ? "Add a caption..." : "What is happening?!"}
+					placeholder={
+						mode === "short" ? "Add a caption..." : "What is happening?!"
+					}
 					value={text}
 					onChange={(e) => setText(e.target.value)}
 				/>
 
 				{/* Media Preview Section */}
-				{mode === 'post' && imgs.length > 0 && (
+				{mode === "post" && imgs.length > 0 && (
 					<div className="grid grid-cols-2 md:grid-cols-4 gap-2">
 						{imgs.map((imgSrc, index) => (
 							<div key={index} className="relative">
@@ -154,26 +198,34 @@ const CreatePostPage = ({ mode, parentPostUuid }) => {
 									className="absolute top-1 right-1 text-white bg-gray-800 rounded-full w-5 h-5 cursor-pointer hover:bg-red-600"
 									onClick={() => removeImage(index)}
 								/>
-								<img src={imgSrc} className="w-full h-32 object-cover rounded" alt={`Preview ${index}`} />
+								<img
+									src={imgSrc}
+									className="w-full h-32 object-cover rounded"
+									alt={`Preview ${index}`}
+								/>
 							</div>
 						))}
 					</div>
 				)}
 
-				{mode === 'short' && videoPreviewUrl && (
+				{mode === "short" && videoPreviewUrl && (
 					<div className="relative">
 						<IoCloseSharp
 							className="absolute top-2 right-2 text-white bg-gray-800 rounded-full w-6 h-6 z-10 cursor-pointer hover:bg-red-600"
 							onClick={removeVideo}
 						/>
-						<video src={videoPreviewUrl} controls className="w-full max-h-60 rounded" />
+						<video
+							src={videoPreviewUrl}
+							controls
+							className="w-full max-h-60 rounded"
+						/>
 					</div>
 				)}
 
 				{/* Action Bar */}
 				<div className="flex justify-between border-t py-2 border-t-gray-700">
 					<div className="flex gap-2 items-center">
-						{mode === 'post' ? (
+						{mode === "post" ? (
 							<CiImageOn
 								className="fill-primary w-6 h-6 cursor-pointer"
 								onClick={() => fileInputRef.current.click()}

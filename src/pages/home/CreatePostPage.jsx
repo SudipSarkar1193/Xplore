@@ -35,32 +35,45 @@ const CreatePostPage = ({ mode, parentPostUuid }) => {
 
 	const { mutate: createPost, isPending: isPosting } = useMutation({
 		mutationFn: async (formData) => {
-			const res = await fetch(`${backendServer}/api/posts`, {
-				method: "POST",
-				headers: { Authorization: `Bearer ${authToken}` },
-				body: formData,
-			});
+			try {
+				const res = await fetch(`${backendServer}/api/posts`, {
+					method: "POST",
+					headers: { Authorization: `Bearer ${authToken}` },
+					body: formData,
+				});
 
-			if (res.status === 202) {
-				return { message: "Your post is being processed." };
-			}
+				// ALWAYS read the JSON body first to complete the request.
+				const jsonRes = await res.json();
 
-			const jsonRes = await res.json();
-			if (!res.ok) {
-				throw new Error(jsonRes.message || "Failed to create post");
+				console.log("Create Post Response: ==>>", jsonRes);
+
+				// THEN, check if the response was not successful.
+				if (!res.ok) {
+					throw new Error(
+						jsonRes.message || jsonRes.error || "Failed to create post"
+					);
+				}
+
+				// If successful, return the JSON body. It will contain the message.
+				return jsonRes;
+			} catch (error) {
+				// Rethrow the error to be caught by onError.
+				throw error;
 			}
-			return jsonRes;
 		},
 		onSuccess: (data) => {
-			if (data.message) {
+			// Check for the specific message from the 202 response.
+			if (data.message && data.message.includes("processed")) {
 				toast.loading(data.message, {
-					duration: 5000, // Keep the toast for 5 seconds
+					duration: 5000,
 				});
 			} else {
+				// Handle other success cases if any (e.g., for synchronous image posts)
 				toast.success("Post created successfully!");
 				queryClient.invalidateQueries({ queryKey: ["posts"] });
 			}
-			// Don't close the modal here, wait for the notification
+
+			// Reset form state and close the modal
 			setText("");
 			setImgs([]);
 			setImageFiles([]);
@@ -69,7 +82,7 @@ const CreatePostPage = ({ mode, parentPostUuid }) => {
 				URL.revokeObjectURL(videoPreviewUrl);
 				setVideoPreviewUrl(null);
 			}
-			closeModal(); // Close modal immediately after sending
+			closeModal();
 		},
 		onError: (error) => {
 			toast.error(error.message);

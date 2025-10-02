@@ -63,7 +63,7 @@ export const AuthContextProvider = ({ children }) => {
 		if (!authToken) return;
 		const intervalId = setInterval(() => {
 			refetchUnreadCount();
-		}, 200000); // 3 min 20 secs
+		}, 150000); // 2.5 minutes
 
 		return () => clearInterval(intervalId);
 	}, [authToken, refetchUnreadCount]);

@@ -24,9 +24,10 @@ const CreatePostPage = ({ mode, parentPostUuid }) => {
 	const { closeModal } = useModal();
 
 	const maxImages = 10;
-	const maxVideoSizeMB = 250;
+	const maxVideoSizeMB = 200; 
 
 	useEffect(() => {
+		// Auto-resize textarea
 		if (textRef.current) {
 			textRef.current.style.height = "auto";
 			textRef.current.style.height = `${textRef.current.scrollHeight}px`;
@@ -35,61 +36,24 @@ const CreatePostPage = ({ mode, parentPostUuid }) => {
 
 	const { mutate: createPost, isPending: isPosting } = useMutation({
 		mutationFn: async (formData) => {
-			try {
-				const res = await fetch(`${backendServer}/api/posts`, {
-					method: "POST",
-					headers: { Authorization: `Bearer ${authToken}` },
-					body: formData,
-				});
-
-				// ALWAYS read the JSON body first to complete the request.
-				const jsonRes = await res.json();
-
-				console.log("Create Post Response: ==>>", jsonRes);
-
-				// THEN, check if the response was not successful.
-				if (!res.ok) {
-					throw new Error(
-						jsonRes.message || jsonRes.error || "Failed to create post"
-					);
-				}
-
-				// If successful, return the JSON body. It will contain the message.
-				return jsonRes;
-			} catch (error) {
-				// Rethrow the error to be caught by onError.
-				throw error;
-			}
+			const res = await fetch(`${backendServer}/api/posts`, {
+				method: "POST",
+				headers: { Authorization: `Bearer ${authToken}` },
+				body: formData,
+			});
+			const jsonRes = await res.json();
+			if (!res.ok) throw new Error(jsonRes.message || "Failed to create post");
+			return jsonRes;
 		},
-		onSuccess: (data) => {
-			// Check for the specific message from the 202 response.
-			if (data.message && data.message.includes("processed")) {
-				toast.loading(data.message, {
-					duration: 5000,
-				});
-			} else {
-				// Handle other success cases if any (e.g., for synchronous image posts)
-				toast.success("Post created successfully!");
-				queryClient.invalidateQueries({ queryKey: ["posts"] });
-			}
-
-			// Reset form state and close the modal
-			setText("");
-			setImgs([]);
-			setImageFiles([]);
-			setVideoFile(null);
-			if (videoPreviewUrl) {
-				URL.revokeObjectURL(videoPreviewUrl);
-				setVideoPreviewUrl(null);
-			}
+		onSuccess: () => {
+			toast.success("Post created successfully!");
+			queryClient.invalidateQueries({ queryKey: ["posts"] });
 			closeModal();
 		},
-		onError: (error) => {
-			toast.error(error.message);
-		},
+		onError: (error) => toast.error(error.message),
 	});
 
-	const handleSubmit = async (e) => {
+	const handleSubmit = (e) => {
 		e.preventDefault();
 		if (isPosting) return;
 
@@ -176,15 +140,13 @@ const CreatePostPage = ({ mode, parentPostUuid }) => {
 				<textarea
 					ref={textRef}
 					className="textarea w-full p-0 text-lg resize-none border-none focus:outline-none bg-transparent"
-					placeholder={
-						mode === "short" ? "Add a caption..." : "What is happening?!"
-					}
+					placeholder={mode === "short" ? "Add a caption..." : "What is happening?!"}
 					value={text}
 					onChange={(e) => setText(e.target.value)}
 				/>
 
 				{/* Media Preview Section */}
-				{mode === "post" && imgs.length > 0 && (
+				{mode === 'post' && imgs.length > 0 && (
 					<div className="grid grid-cols-2 md:grid-cols-4 gap-2">
 						{imgs.map((imgSrc, index) => (
 							<div key={index} className="relative">
@@ -192,34 +154,26 @@ const CreatePostPage = ({ mode, parentPostUuid }) => {
 									className="absolute top-1 right-1 text-white bg-gray-800 rounded-full w-5 h-5 cursor-pointer hover:bg-red-600"
 									onClick={() => removeImage(index)}
 								/>
-								<img
-									src={imgSrc}
-									className="w-full h-32 object-cover rounded"
-									alt={`Preview ${index}`}
-								/>
+								<img src={imgSrc} className="w-full h-32 object-cover rounded" alt={`Preview ${index}`} />
 							</div>
 						))}
 					</div>
 				)}
 
-				{mode === "short" && videoPreviewUrl && (
+				{mode === 'short' && videoPreviewUrl && (
 					<div className="relative">
 						<IoCloseSharp
 							className="absolute top-2 right-2 text-white bg-gray-800 rounded-full w-6 h-6 z-10 cursor-pointer hover:bg-red-600"
 							onClick={removeVideo}
 						/>
-						<video
-							src={videoPreviewUrl}
-							controls
-							className="w-full max-h-60 rounded"
-						/>
+						<video src={videoPreviewUrl} controls className="w-full max-h-60 rounded" />
 					</div>
 				)}
 
 				{/* Action Bar */}
 				<div className="flex justify-between border-t py-2 border-t-gray-700">
 					<div className="flex gap-2 items-center">
-						{mode === "post" ? (
+						{mode === 'post' ? (
 							<CiImageOn
 								className="fill-primary w-6 h-6 cursor-pointer"
 								onClick={() => fileInputRef.current.click()}

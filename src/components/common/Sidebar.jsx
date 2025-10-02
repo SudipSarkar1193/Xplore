@@ -11,7 +11,7 @@ import { useAuthContext } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
-	const { authUser, logout } = useAuthContext();
+	const { authUser, logout, unreadCount } = useAuthContext();
 
 	const handleLogout = (e) => {
 		e.preventDefault();
@@ -104,7 +104,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 								className="flex gap-3 items-center hover:bg-secondary transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
 								onClick={handleLinkClick}
 							>
-								<IoNotifications className="w-6 h-6" />
+								<div className="relative">
+									<IoNotifications className="w-6 h-6" />
+									{unreadCount > 0 && (
+										<span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-black"></span>
+									)}
+								</div>
 								<span className="text-lg">Notifications</span>
 							</Link>
 						</li>

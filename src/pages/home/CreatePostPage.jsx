@@ -15,7 +15,6 @@ const CreatePostPage = ({ mode, parentPostUuid }) => {
 	const [imageFiles, setImageFiles] = useState([]);
 	const [videoFile, setVideoFile] = useState(null);
 	const [videoPreviewUrl, setVideoPreviewUrl] = useState(null);
-	const [videoUploadMessage, setVideoUploadMessage] = useState("");
 
 	const fileInputRef = useRef(null);
 	const textRef = useRef(null);
@@ -28,7 +27,6 @@ const CreatePostPage = ({ mode, parentPostUuid }) => {
 	const maxVideoSizeMB = 250;
 
 	useEffect(() => {
-		// Auto-resize textarea
 		if (textRef.current) {
 			textRef.current.style.height = "auto";
 			textRef.current.style.height = `${textRef.current.scrollHeight}px`;
@@ -42,23 +40,46 @@ const CreatePostPage = ({ mode, parentPostUuid }) => {
 				headers: { Authorization: `Bearer ${authToken}` },
 				body: formData,
 			});
+
+			if (res.status === 202) {
+				return { message: "Your post is being processed." };
+			}
+
 			const jsonRes = await res.json();
-			if (!res.ok) throw new Error(jsonRes.message || "Failed to create post");
+			if (!res.ok) {
+				throw new Error(jsonRes.message || "Failed to create post");
+			}
 			return jsonRes;
 		},
-		onSuccess: () => {
-			toast.success("Post created successfully!");
-			queryClient.invalidateQueries({ queryKey: ["posts"] });
-			closeModal();
+		onSuccess: (data) => {
+			if (data.message) {
+				toast.loading(data.message, {
+					duration: 5000, // Keep the toast for 5 seconds
+				});
+			} else {
+				toast.success("Post created successfully!");
+				queryClient.invalidateQueries({ queryKey: ["posts"] });
+			}
+			// Don't close the modal here, wait for the notification
+			setText("");
+			setImgs([]);
+			setImageFiles([]);
+			setVideoFile(null);
+			if (videoPreviewUrl) {
+				URL.revokeObjectURL(videoPreviewUrl);
+				setVideoPreviewUrl(null);
+			}
+			closeModal(); // Close modal immediately after sending
 		},
-		onError: (error) => toast.error(error.message),
+		onError: (error) => {
+			toast.error(error.message);
+		},
 	});
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		if (isPosting) return;
 
-		// 1. Validate
 		const isContentEmpty = !text.trim();
 		const isMediaEmpty = mode === "post" ? imageFiles.length === 0 : !videoFile;
 
@@ -67,55 +88,16 @@ const CreatePostPage = ({ mode, parentPostUuid }) => {
 			return;
 		}
 
-		// 2. loader with msg
-		const toastId = toast.loading("Posting your short..."); // Show initial msg
+		const formData = new FormData();
+		formData.append("content", text);
 
-		// After 3 seconds, update the toast to show only the spinner
-		setTimeout(() => {
-			toast.update(toastId, { render: null, isLoading: true });
-		}, 3000);
-
-		try {
-			// 3. Build FormData and call API to create post
-			const formData = new FormData();
-			formData.append("content", text);
-
-			if (mode === "short" && videoFile) {
-				formData.append("video", videoFile);
-			} else if (mode === "post" && imageFiles.length > 0) {
-				imageFiles.forEach((file) => formData.append("images", file));
-			}
-
-			await createPost(formData);
-
-			// 4. On success, show final message and close the loader
-			toast.update(toastId, {
-				render: "Posted successfully!",
-				type: "success",
-				isLoading: false,
-				autoClose: 4000, // Automatically close after 4 seconds
-			});
-
-			// 5. Clean up state on success
-			if (mode === "short") {
-				if (videoPreviewUrl) {
-					URL.revokeObjectURL(videoPreviewUrl);
-					setVideoPreviewUrl(null);
-				}
-				setVideoFile(null);
-			}
-			closeModal();
-		} catch (error) {
-			// 6. On error, show final message and close the loader
-			console.error("Failed to create post:", error);
-			toast.update(toastId, {
-				render: "Failed to post. Please try again.",
-				type: "error",
-				isLoading: false,
-				autoClose: 2000,
-			});
-			toast.dismiss(toastId);
+		if (mode === "short" && videoFile) {
+			formData.append("video", videoFile);
+		} else if (mode === "post" && imageFiles.length > 0) {
+			imageFiles.forEach((file) => formData.append("images", file));
 		}
+
+		createPost(formData);
 	};
 
 	const handleFileChange = (e) => {

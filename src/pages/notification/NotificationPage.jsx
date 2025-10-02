@@ -10,7 +10,8 @@ import { backendServer } from "../../BackendServer";
 import { useAuthContext } from "../../context/AuthContext";
 
 const NotificationPage = () => {
-	const { authToken, authUser, refreshUser } = useAuthContext();
+	const { authToken, authUser, refreshUser, refetchUnreadCount } =
+		useAuthContext();
 	const queryClient = useQueryClient();
 
 	const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(
@@ -28,18 +29,22 @@ const NotificationPage = () => {
 		queryKey: ["notifications"],
 		queryFn: async () => {
 			try {
-				// The endpoint is paginated, but for simplicity, we're fetching the first page.
 				const res = await fetch(`${backendServer}/api/v1/notifications`, {
 					headers: { Authorization: `Bearer ${authToken}` },
 				});
 				const data = await res.json();
 				if (!res.ok) throw new Error(data.message || "Something went wrong");
-				return data.content; // Use the 'content' array from the paginated response
+				return data.content;
 			} catch (error) {
 				throw new Error(error.message);
 			}
 		},
 		enabled: !!authToken,
+		onSuccess: () => {
+			// When notifications are successfully fetched, refetch the unread count.
+			// The backend marks them as read, so the count should now be 0.
+			refetchUnreadCount();
+		},
 	});
 
 	const { mutate: deleteNotifications } = useMutation({

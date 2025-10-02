@@ -107,10 +107,21 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 								<div className="relative">
 									<IoNotifications className="w-6 h-6" />
 									{unreadCount > 0 && (
-										<span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-black"></span>
+										<>
+											<span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-black"></span>
+										</>
 									)}
 								</div>
-								<span className="text-lg">Notifications</span>
+								<div className="flex gap-2 items-center  ">
+									<span className="text-lg">Notifications</span>
+									{unreadCount > 0 && (
+										<span
+											className={`text-xs px-2 py-1 bg-red-600  text-white rounded-full`}
+										>
+											{unreadCount}
+										</span>
+									)}
+								</div>
 							</Link>
 						</li>
 						<li>

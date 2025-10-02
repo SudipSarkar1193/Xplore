@@ -58,38 +58,6 @@ export const AuthContextProvider = ({ children }) => {
 		refetchOnWindowFocus: false, // prevent refetching on window focus
 	});
 
-	// The logic for post creation notification
-	useEffect(() => {
-		if (!authToken) return;
-
-		const fetchNotificationsForToast = async () => {
-			try {
-				const res = await fetch(`${backendServer}/api/v1/notifications`, {
-					headers: { Authorization: `Bearer ${authToken}` },
-				});
-				const data = await res.json();
-				if (res.ok && data.content.length > 0) {
-					const postCreatedNotification = data.content.find(
-						(n) => n.type === "POST_CREATED" && !n.read
-					);
-
-					if (postCreatedNotification) {
-						toast.success("Your post has been successfully published.");
-						queryClient.invalidateQueries({ queryKey: ["posts"] });
-						refetchUnreadCount(); // Refetch count after showing toast
-					}
-				}
-			} catch (error) {
-				console.error("Failed to fetch notifications for toast:", error);
-			}
-		};
-
-		// Check for notifications if the count is greater than 0
-		if (unreadCount > 0) {
-			fetchNotificationsForToast();
-		}
-	}, [unreadCount, authToken, queryClient, refetchUnreadCount]);
-
 	// Polling for the unread count
 	useEffect(() => {
 		if (!authToken) return;

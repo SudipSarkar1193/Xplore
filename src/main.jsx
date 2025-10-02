@@ -4,9 +4,10 @@ import App from "./App.jsx";
 import "./index.css";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthContextProvider } from "./context/AuthContext.jsx"; 
+import { AuthContextProvider } from "./context/AuthContext.jsx";
 import { ModalProvider } from "./context/ModalContext.jsx";
 import { VideoObserverProvider } from "./context/VideoObserverContext.jsx";
+import { PostProvider } from "./context/PostContext.jsx";
 
 const queryClient = new QueryClient({
 	defaultOptions: {
@@ -23,7 +24,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 				<AuthContextProvider>
 					<ModalProvider>
 						<VideoObserverProvider>
-							<App />
+							<PostProvider>
+								<App />
+							</PostProvider>
 						</VideoObserverProvider>
 					</ModalProvider>
 				</AuthContextProvider>

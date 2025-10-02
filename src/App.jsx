@@ -12,6 +12,8 @@ import OtpVerificationPage from "./pages/auth/OtpVerificationPage";
 import MobileHeader from "./components/common/MobileHeader";
 import CreatePostModal from "./components/common/CreatePostModal";
 import FloatingActionButton from "./components/common/FloatingActionButton";
+import { usePostContext } from "./context/PostContext";
+import { LoaderWithText } from "./components/common/LoaderWithText";
 
 const ErrorPage = lazy(() => import("./pages/error/ErrorPage"));
 const HomePage = lazy(() => import("./pages/home/HomePage"));
@@ -30,6 +32,7 @@ const App = () => {
 	const { authUser, isLoading } = useAuthContext();
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 	const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+	const { isPosting } = usePostContext();
 
 	const StyledLoadingSpinner = () => (
 		<div className="h-svh w-screen flex items-center justify-center">
@@ -51,9 +54,16 @@ const App = () => {
 							onMenuClick={() => setIsSidebarOpen(true)}
 							onSearchClick={() => setIsSearchModalOpen(true)}
 						/>
-
+						{isPosting && (
+							<div className="fixed top-16 left-1/2 transform -translate-x-1/2 z-50 bg-blue-600/30 border-1 border-green-600 px-4 py-1 rounded-lg shadow-lg">
+								<LoaderWithText
+									text={"creating your post..."}
+									textColor="green-500"
+									spinnerColor="stroke-green-400"
+								/>
+							</div>
+						)}
 						<Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-
 						{/* Main content container */}
 						<div className="flex flex-1 min-h-screen">
 							{/* Main content area */}
@@ -77,7 +87,6 @@ const App = () => {
 								</div>
 							</aside>
 						</div>
-
 						{/* Search Modal for mobile */}
 						<dialog
 							className={`modal ${isSearchModalOpen ? "modal-open" : ""}`}
@@ -89,10 +98,12 @@ const App = () => {
 								>
 									✕
 								</button>
-								<SearchUser isModalMode={true} setIsSearchModalOpen={setIsSearchModalOpen} />
+								<SearchUser
+									isModalMode={true}
+									setIsSearchModalOpen={setIsSearchModalOpen}
+								/>
 							</div>
 						</dialog>
-
 						<CreatePostModal />
 						<FloatingActionButton />
 					</>

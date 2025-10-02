@@ -63,7 +63,7 @@ export const AuthContextProvider = ({ children }) => {
 		if (!authToken) return;
 		const intervalId = setInterval(() => {
 			refetchUnreadCount();
-		}, 15000); // Poll every 15 seconds
+		}, 15000*6); // Poll every 15 seconds
 
 		return () => clearInterval(intervalId);
 	}, [authToken, refetchUnreadCount]);

@@ -90,7 +90,9 @@ const CreatePostModal = () => {
 					{!creationMode ? (
 						// Step 1: Show the choice buttons
 						<div className="flex flex-col items-center justify-center gap-6 py-10">
-							<h2 className="text-2xl font-bold mb-4">What do you want to create?</h2>
+							<h2 className="text-2xl font-bold mb-4">
+								What do you want to create?
+							</h2>
 							<div className="flex gap-8">
 								<button
 									onClick={() => setCreationMode("post")}
@@ -110,7 +112,7 @@ const CreatePostModal = () => {
 						</div>
 					) : (
 						// Step 2: Render the creation form with the selected mode
-						<CreatePostPage mode={creationMode} />
+						<CreatePostPage mode={creationMode} closeEntireModal={closeModal} />
 					)}
 				</div>
 			</div>

@@ -10,7 +10,7 @@ import UserListItem from "./UserListItem";
 export const SearchUser = ({
 	show = false,
 	isModalMode = false,
-	setIsSearchModalOpen,
+	closeModal,
 }) => {
 	const [search, setSearch] = useState("");
 	const { authToken } = useAuthContext();
@@ -121,7 +121,7 @@ export const SearchUser = ({
 							ref={scrollContainerRef}
 							className="max-h-screen overflow-y-auto no-scrollbar"
 						>
-							{!search && <RightPanel />}
+							{!search && <RightPanel closeModal = {closeModal} />}
 
 							{search && isLoading && !data && <LoadingSpinner />}
 
@@ -130,7 +130,7 @@ export const SearchUser = ({
 									<UserListItem
 										key={user.uuid}
 										user={user}
-										setIsSearchModalOpen={setIsSearchModalOpen}
+										closeModal={closeModal}
 									/>
 								))}
 

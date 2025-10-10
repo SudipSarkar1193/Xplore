@@ -14,6 +14,7 @@ import CreatePostModal from "./components/common/CreatePostModal";
 import FloatingActionButton from "./components/common/FloatingActionButton";
 import { usePostContext } from "./context/PostContext";
 import { LoaderWithText } from "./components/common/LoaderWithText";
+import { set } from "mongoose";
 
 const ErrorPage = lazy(() => import("./pages/error/ErrorPage"));
 const HomePage = lazy(() => import("./pages/home/HomePage"));
@@ -33,6 +34,11 @@ const App = () => {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 	const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 	const { isPosting } = usePostContext();
+
+	const closeModal = () => {
+		setIsSearchModalOpen(false);
+		console.log("Closing search modal from App.jsx");
+	};
 
 	const StyledLoadingSpinner = () => (
 		<div className="h-svh w-screen flex items-center justify-center">
@@ -83,7 +89,7 @@ const App = () => {
 							{/* Right Panel for desktop */}
 							<aside className="hidden lg:block lg:w-[450px] flex-shrink-0">
 								<div className="sticky top-0 h-screen overflow-y-auto no-scrollbar">
-									<SearchUser />
+									<SearchUser closeModal={closeModal} />
 								</div>
 							</aside>
 						</div>
@@ -93,15 +99,15 @@ const App = () => {
 						>
 							<div className="modal-box">
 								<button
-									onClick={() => setIsSearchModalOpen(false)}
+									onClick={() => {
+										setIsSearchModalOpen(false);
+										console.log("Closing search modal", setIsSearchModalOpen);
+									}}
 									className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
 								>
 									✕
 								</button>
-								<SearchUser
-									isModalMode={true}
-									setIsSearchModalOpen={setIsSearchModalOpen}
-								/>
+								<SearchUser isModalMode={true} closeModal={closeModal} />
 							</div>
 						</dialog>
 						<CreatePostModal />

@@ -2,11 +2,17 @@ import React from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import useFollow from "../../custom_hooks/useFollow";
 import LoadingSpinner from "./LoadingSpinner";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-const UserListItem = ({ user, setIsSearchModalOpen }) => {
+const UserListItem = ({ user, closeModal }) => {
 	const { follow, isPending } = useFollow();
 	const queryClient = useQueryClient();
+	const navigate = useNavigate();
+
+	const gotoUserProfile = (user) => {
+		navigate(`/profile/${user.username}`);
+		console.log("Navigating to user profile:", user);
+	};
 
 	// Helper function to find user's current follow status in cache
 	const getCurrentFollowStatus = () => {
@@ -68,14 +74,22 @@ const UserListItem = ({ user, setIsSearchModalOpen }) => {
 	const isFollowing = getCurrentFollowStatus();
 
 	return (
-		<div className="p-4 hover:bg-gray-800 transition-colors flex items-center  gap-3">
+		<div
+			className="p-4 hover:bg-gray-800 transition-colors flex items-center gap-3"
+			onClick={(e) => {
+				e.preventDefault();
+
+				if (closeModal) {
+					console.log("Closing search modal", closeModal);
+					closeModal();
+				}
+
+				gotoUserProfile(user);
+			}}
+		>
 			<Link
 				to={`/profile/${user.username}`}
 				className="flex gap-2 flex-1 items-center justify-self-start"
-				onClick={(e) => {
-					e.preventDefault();
-					setIsSearchModalOpen(false);
-				}}
 			>
 				<img
 					src={user.profilePictureUrl || "/avatar-placeholder.png"}
@@ -85,8 +99,8 @@ const UserListItem = ({ user, setIsSearchModalOpen }) => {
 
 				<div className="flex-1">
 					<p className="font-semibold italic text-white hover:underline cursor-pointer">
-						{user.username.length > 10
-							? user.username.slice(0, 10) + "..."
+						{user.username.length > 7
+							? user.username.slice(0, 7) + "..."
 							: user.username}
 					</p>
 				</div>

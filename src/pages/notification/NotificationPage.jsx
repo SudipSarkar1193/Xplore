@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { IoSettingsOutline } from "react-icons/io5";
@@ -17,6 +17,8 @@ const NotificationPage = () => {
 	const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(
 		authUser?.emailNotificationsEnabled || true
 	);
+
+	const navigate = useNavigate();
 
 	// Update local state when authUser changes
 	useEffect(() => {
@@ -181,8 +183,15 @@ const NotificationPage = () => {
 				)}
 				{data?.map((notification) => (
 					<div
-						className="border-b border-gray-700"
+						className="border-b border-gray-700 cursor-pointer hover:bg-gray-800 transition-colors"
 						key={notification.notificationUuid}
+						onClick={() => {
+							if (notification.type !== "NEW_FOLLOWER") {
+								navigate(`/post/${notification.relatedEntityUuid}`);
+							} else {
+								navigate(`/profile/${notification.senderUsername}`);
+							}
+						}}
 					>
 						<div className="flex gap-4 p-4">
 							{getNotificationIcon(notification.type)}
@@ -200,7 +209,7 @@ const NotificationPage = () => {
 							</Link>
 							<div className="">
 								<Link to={`/profile/${notification.senderUsername}`}>
-									<span className="font-bold">
+									<span className="font-bold active:underline hover:underline">
 										@{notification.senderUsername}
 									</span>
 								</Link>
